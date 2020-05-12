@@ -1,21 +1,38 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button>
+        <ion-icon slot="icon-only" name="chevron-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
     <ion-title>
-      Blank
+      Photo ASAPP
     </ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <div class="full-height fx-col fx-justify-center fx-align-center">
+    <div class="home-screen fx-col fx-justify-evenly">
+      <div class="fx-col fx-align-center fx-justify-center">
+        <ion-input type="text" fill="outline" placeholder="Enter your name..."></ion-input>
+      </div>
+      <div class="fx-col fx-align-center fx-justify-center">
+        <ion-button style="--border-radius: 100px">Ready</ion-button>
+        <ion-button fill="outline" style="--border-radius: 100px">Not ready</ion-button>
+      </div>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer"
-        href="https://ionicframework.com/docs/components">UI Components</a></p>
+      <div class="game-status fx-row fx-justify-center">
+        <ion-icon name="{{ getGameStatusIconName() }}" color="primary"></ion-icon>
+        <span>{{ gameStatus.toString() }}</span>
+      </div>
+
+      <div class="game-details fx-col fx-align-center">
+        <span>Required number of players: {{ requiredNumberOfPlayers }}</span>
+        <span>Currently connected players: {{ numberOfConnectedPlayers }}</span>
+        <span>Ready players: {{ numberOfReadyPlayers }}</span>
+      </div>
+    </div>
   </div>
+
 </ion-content>

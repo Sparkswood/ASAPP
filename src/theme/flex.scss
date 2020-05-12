@@ -1,0 +1,29 @@
+.fx {
+    display: flex;
+}
+
+.fx-row {
+    display: flex;
+    flex-direction: row;
+} 
+
+.fx-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.fx-align-center {
+    align-items: center;
+}
+
+.fx-justify-center {
+    justify-content: center;
+}
+
+.fx-justify-evenly {
+    justify-content: space-evenly;
+}
+
+.fx-justify-spread {
+    justify-content: spread;
+}

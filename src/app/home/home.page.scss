@@ -1,27 +1,45 @@
-#container {
-  text-align: center;
+@import "../../theme/variables.scss";
+@import "../../theme/dimensions.scss";
+@import "../../theme/flex.scss";
 
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+.home-screen {
+  height: 500px;
+  width: 80%;
+
+  ion-input {
+    width: 100%;
+    height: $text-input-default-height;
+    padding: 6px 16px !important;
+
+    border: 2px solid var(--ion-color-primary);
+    border-radius: 100px;
+    
+    color: var(--ion-color-primary);
+    font-weight: bold;
+    text-align: center;
+  }
+
+  ion-button {
+    width: 100%;
+    height: $button-default-height;
+  }
 }
 
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
+.full-height {
+  height: 100%;
 }
 
-#container p {
-  font-size: 16px;
-  line-height: 22px;
-
-  color: #8c8c8c;
-
-  margin: 0;
+.game-status {
+  ion-icon {
+    height: 100%;
+    margin-right: 6px;
+    
+    font-size: 1.2em;
+  }
 }
 
-#container a {
-  text-decoration: none;
+.game-details {
+  span {
+    margin: 4px 0;
+  }
 }
