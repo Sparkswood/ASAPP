@@ -18,8 +18,8 @@
         <ion-input type="text" fill="outline" placeholder="Enter your name..."></ion-input>
       </div>
       <div class="fx-col fx-align-center fx-justify-center">
-        <ion-button style="--border-radius: 100px">Ready</ion-button>
-        <ion-button fill="outline" style="--border-radius: 100px">Not ready</ion-button>
+        <ion-button style="--border-radius: 100px" (click)="reportReadyState()">Ready</ion-button>
+        <ion-button fill="outline" style="--border-radius: 100px" (click)="reportNotReadyState()">Not ready</ion-button>
       </div>
 
       <div class="game-status fx-row fx-justify-center">
