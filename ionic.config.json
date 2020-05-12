@@ -1,0 +1,7 @@
+{
+  "name": "PhotoASAPP",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
