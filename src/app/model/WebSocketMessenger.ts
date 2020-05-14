@@ -17,7 +17,8 @@ export enum WebSocketMessageType {
     AUTH_WELCOME_SUCCESS = 'auth_welcome-success',
     AUTH_WELCOME_ERROR = 'auth_welcome-error',
     PLAYER_READY_SUCCES = 'player_ready-success',
-    PLAYER_READY_ERROR = 'player_ready-error'
+    PLAYER_READY_ERROR = 'player_ready-error',
+    PLAYER_WORD = 'player_word'
 }
 
 export enum PayloadMessage {

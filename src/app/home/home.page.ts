@@ -2,6 +2,7 @@ import { Component, platformCore } from '@angular/core';
 import { GameStatus } from '../model/enums/GameStatus';
 import { WebSocketMessage, Payload } from '../model/WebSocketMessenger';
 import { GameService } from '../services/game.service';
+import { ValueAccessor } from '@ionic/angular/directives/control-value-accessors/value-accessor';
 
 @Component({
   selector: 'app-home',
@@ -17,6 +18,8 @@ export class HomePage {
   private _connectedPlayers: string[];
   private _readyPlayers: string[];
   private _socket: WebSocket;
+  private _playerName: string;
+  private _isPlayerNameValid: boolean;
   private _playerId: string;
   private _isPlayerIdValid: boolean;
   private _isPlayerReady: boolean;
@@ -45,6 +48,20 @@ export class HomePage {
 
   get isPlayerReady(): boolean {
     return this._isPlayerReady;
+  }
+
+  get isPlayerNameValid(): boolean {
+    return this._isPlayerNameValid;
+  }
+
+  get layerName(): string {
+    return this._playerName;
+  }
+
+  setPlayerName(value: any) {
+    this._playerName = value.target.value;
+    console.log(`playerNameSet ${this._playerName}`);
+    this._gameService.setPlayerName(this._playerName);
   }
 
   constructor(private _gameService: GameService) { }
@@ -77,8 +94,13 @@ export class HomePage {
     })
 
     this._gameService.isPlayerIdValid.subscribe(isIdValid => {
-      console.log(`Player id ${!isIdValid ? 'in' : ''} valid: ${isIdValid}`);
+      console.log(`Player id ${!isIdValid ? 'in' : ''}valid: ${isIdValid}`);
       this._isPlayerIdValid = isIdValid;
+    })
+
+    this._gameService.isPlayerNameValid.subscribe(isNameValid => {
+      console.log(`Player name ${!isNameValid ? 'in' : ''}valid: ${isNameValid}`);
+      this._isPlayerNameValid = isNameValid;
     })
 
     this._gameService.isPlayerReady.subscribe(readyStatus => {
@@ -95,6 +117,14 @@ export class HomePage {
     switch (this._gameStatus) {
       case GameStatus.CONNECTING_TO_SERVER: {
         value = 'hourglass';
+        break;
+      }
+      case GameStatus.ALL_SLOTS_ARE_FULL: {
+        value = 'sad';
+        break;
+      }
+      case GameStatus.SOME_GAME_IS_TAKING_PLACE: {
+        value = 'hand-left';
         break;
       }
       case GameStatus.WAITING_FOR_OTHER_PLAYERS: {
@@ -126,19 +156,11 @@ export class HomePage {
   //#endregion
 
   //#region Boolean functions
-  private isSocketOpened(): boolean {
-    return this._socket.readyState == this._socket.OPEN;
-  }
-
-  private isUserIdSet(): boolean {
-    return this._playerId != null;
-  }
   //#endregion
 
   //#region Actuators functions
   reportReadyState() {
     this._gameService.reportPlayerReadyState(true);
-    // this.reportPlayerReadyState(true);
   }
 
   reportNotReadyState() {

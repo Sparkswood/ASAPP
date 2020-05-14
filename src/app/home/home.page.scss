@@ -10,7 +10,8 @@
     width: 100%;
     box-sizing: border-box;
     height: $text-input-default-height;
-    padding: 6px 0 !important;
+    padding: 6px !important;
+    padding-left: 0px !important;
 
     border: 2px solid var(--ion-color-primary);
     border-radius: 100px;

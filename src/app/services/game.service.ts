@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { WebSocketMessage, Payload, PayloadMessage } from '../model/WebSocketMessenger';
 import { GameStatus } from '../model/enums/GameStatus';
 import { Observable, Subject, BehaviorSubject } from 'rxjs';
+import { runInThisContext } from 'vm';
 
 @Injectable({
   providedIn: 'root'
@@ -18,6 +19,8 @@ export class GameService {
 
   socketConnectionStatus = new Subject<number>();
   gameStatus = new BehaviorSubject<GameStatus>(GameStatus.CONNECTING_TO_SERVER);
+  playerName = new BehaviorSubject<string>(null);
+  isPlayerNameValid = new BehaviorSubject<boolean>(false);
   playerId = new BehaviorSubject<string>(null);
   isPlayerIdValid = new BehaviorSubject<boolean>(false);
   isPlayerReady = new BehaviorSubject<boolean>(false);
@@ -61,6 +64,7 @@ export class GameService {
     else if (messageType === 'auth_welcome-error') this.handleWelcomeError(message.payload);
     else if (messageType === 'player_ready-success') this.handlePlayerReadySuccess(message.payload);
     else if (messageType === 'player_ready-error') this.handlePlayerReadyError(message.payload);
+    else if (messageType === 'player_word') this.handlePlayerWord(message.payload);
   }
 
   private handleWelcomeSuccess(payload: Payload) {
@@ -80,6 +84,9 @@ export class GameService {
   private handleWelcomeError(payload: Payload) {
     console.log(`Welcome error: ${payload.error}`);
     if (payload.error == PayloadMessage.NO_MORE_SPACE_FOR_NEW_PLAYERS) {
+      this.gameStatus.next(GameStatus.ALL_SLOTS_ARE_FULL)
+    } else if (payload.error == PayloadMessage.QUEUE_STAGE_HAS_ENDED) {
+      // TODO: Handle proper action
       this.gameStatus.next(GameStatus.SOME_GAME_IS_TAKING_PLACE)
     }
 
@@ -96,6 +103,10 @@ export class GameService {
 
   private handlePlayerReadyError(payload: Payload) {
     console.log(payload);
+  }
+
+  private handlePlayerWord(payload: Payload) {
+    console.log(`Word received: ${payload.word}`);
   }
 
   private handleWebSocketClose = (event) => {
@@ -117,8 +128,24 @@ export class GameService {
   //#endregion
 
   //#region Actuators functions
+  setPlayerName(value: string) {
+    this.playerName.next(value);
+    this.validatePlayerName()
+  }
+
+  private validatePlayerName() {
+    const playerName = this.playerName.getValue()
+    this.isPlayerNameValid.next(playerName != null && playerName.length > 0);
+  }
+
   reportPlayerReadyState(value: boolean) {
-    if (this.isSocketOpened()) {
+    if (!this.isPlayerIdValid.getValue()) {
+      // TODO: Throw exception: invalid player id
+    } else if (!this.isPlayerNameValid.getValue()) {
+      // TODO: Throw exception: invalid player name
+    } else if (!this.isSocketOpened()) {
+      // TODO: Throw exception: socket close
+    } else {
       this._socket.send(
         JSON.stringify({
           type: 'player_ready',
@@ -128,36 +155,34 @@ export class GameService {
           }
         })
       )
-    } else {
-      // TODO: Throw exception
     }
   }
 
   private requestUserId() {
-    if (this.isSocketOpened()) {
+    if (!this.isSocketOpened()) {
+      // TODO: Throw exception
+    } else {
       this._socket.send(
         JSON.stringify({
           type: 'auth_welcome',
           payload: {}
         })
       )
-    } else {
-      // TODO: Throw exception
     }
   }
 
   private checkUserId() {
-    if (this.isSocketOpened()) {
+    if (!this.isSocketOpened()) {
+      // TODO: Throw exception
+    } else {
       this._socket.send(
         JSON.stringify({
-          type: 'auth_check',
+          type: 'auth_welcome',
           payload: {
             id: this.playerId.getValue()
           }
         })
-      );
-    } else {
-      // TODO: Throw exception
+      )
     }
   }
   //#endregion
