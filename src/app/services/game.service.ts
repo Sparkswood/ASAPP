@@ -1,9 +1,7 @@
 import { Injectable } from '@angular/core';
 import { WebSocketMessage, Payload, PayloadMessage, MessageType } from '../model/WebSocketMessenger';
 import { GameStatus } from '../model/enums/GameStatus';
-import { Observable, Subject, BehaviorSubject } from 'rxjs';
-import { runInThisContext } from 'vm';
-import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
+import { Subject, BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'

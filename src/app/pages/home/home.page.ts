@@ -1,8 +1,6 @@
-import { Component, platformCore } from '@angular/core';
-import { GameStatus } from '../model/enums/GameStatus';
-import { WebSocketMessage, Payload } from '../model/WebSocketMessenger';
-import { GameService } from '../services/game.service';
-import { ValueAccessor } from '@ionic/angular/directives/control-value-accessors/value-accessor';
+import { Component } from '@angular/core';
+import { GameStatus } from '../../model/enums/GameStatus';
+import { GameService } from '../../services/game.service';
 
 @Component({
   selector: 'app-home',
