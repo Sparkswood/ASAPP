@@ -51,7 +51,7 @@ export class GameService {
   //#region WebSocket handlers
   private handleWebSocketOpen = event => {
     this.gameStatus.next(GameStatus.CONNECTING_TO_SERVER);
-    this.gameStatus.next(GameStatus.WAITING_FOR_OTHER_PLAYERS);
+    this.gameStatus.next(GameStatus.WAITING_FOR_READY_STATUS);
     this.socketConnectionStatus.next(this._socket.OPEN);
 
     if (!this.isUserIdSet())
@@ -100,8 +100,11 @@ export class GameService {
   private handlePlayerReadySuccess(payload: Payload) {
     const readyState = payload.ready;
 
-    if (readyState != null)
+    if (readyState != null) {
       this.isPlayerReady.next(readyState);
+    }
+
+    this.gameStatus.next(this.isPlayerReady.getValue() ? GameStatus.WAITING_FOR_OTHER_PLAYERS : GameStatus.WAITING_FOR_READY_STATUS)
   }
 
   private handlePlayerReadyError(payload: Payload) {
@@ -142,14 +145,34 @@ export class GameService {
     this.isPlayerNameValid.next(playerName != null && playerName.length > 0);
   }
 
+  reportPlayerName() {
+    if (!this.isPlayerIdValid.getValue()) {
+      // TODO: Throw exception: invalid player id
+    } else if (!this.isPlayerNameValid.getValue()) {
+      // TODO: Throw exception: invalid player name
+    } else if (!this.isSocketOpened()) {
+      // TODO: Throw exception: socket closed
+    } else {
+      this._socket.send(
+        JSON.stringify({
+          type: 'player_ready',
+          payload: {
+            id: this.playerId.getValue(),
+            name: this.playerName.getValue()
+          }
+        })
+      )
+    }
+  }
+
   reportPlayerReadyState(value: boolean) {
     if (!this.isPlayerIdValid.getValue()) {
       // TODO: Throw exception: invalid player id
     } else if (!this.isPlayerNameValid.getValue()) {
       // TODO: Throw exception: invalid player name
     } else if (!this.isSocketOpened()) {
-      // TODO: Throw exception: socket close
-    } else {
+      // TODO: Throw exception: socket closed
+    } else if (this.isPlayerReady.getValue() != value) { //to avoid redundant calls (e.g. when ready user call ready state)
       this._socket.send(
         JSON.stringify({
           type: 'player_ready',
@@ -164,7 +187,7 @@ export class GameService {
 
   private requestUserId() {
     if (!this.isSocketOpened()) {
-      // TODO: Throw exception
+      // TODO: Throw exception: socekt closed
     } else {
       this._socket.send(
         JSON.stringify({
@@ -177,7 +200,7 @@ export class GameService {
 
   private checkUserId() {
     if (!this.isSocketOpened()) {
-      // TODO: Throw exception
+      // TODO: Throw exception: socekt closed
     } else {
       this._socket.send(
         JSON.stringify({

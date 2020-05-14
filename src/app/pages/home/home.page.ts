@@ -19,6 +19,7 @@ export class HomePage {
   private _isPlayerIdValid: boolean;
   private _isPlayerReady: boolean;
 
+  isIconSpinning: boolean = false;
   socketStatusMessage: string = ' ';
 
   get requiredNumberOfPlayers(): number {
@@ -109,12 +110,16 @@ export class HomePage {
   //#endregion
 
   //#region Getters functions
-  public getGameStatusIconName(): string {
+  getGameStatusIconName(): string {
     let value = '';
 
     switch (this._gameStatus) {
       case GameStatus.CONNECTING_TO_SERVER: {
         value = 'hourglass';
+        break;
+      }
+      case GameStatus.RECONNECTING_TO_SERVER: {
+        value = 'repeat';
         break;
       }
       case GameStatus.ALL_SLOTS_ARE_FULL: {
@@ -125,12 +130,20 @@ export class HomePage {
         value = 'hand-left';
         break;
       }
+      case GameStatus.WAITING_FOR_READY_STATUS: {
+        value = 'glasses';
+        break;
+      }
       case GameStatus.WAITING_FOR_OTHER_PLAYERS: {
-        value = 'time';
+        value = 'hourglass';
         break;
       }
       case GameStatus.GAME_IS_STARTING: {
         value = 'aperture';
+        break;
+      }
+      case GameStatus.DISCONNECTED_FROM_SERVER: {
+        value = 'alert-circle';
         break;
       }
     }
@@ -158,6 +171,7 @@ export class HomePage {
 
   //#region Actuators functions
   reportReadyState() {
+    this._gameService.reportPlayerName();
     this._gameService.reportPlayerReadyState(true);
   }
 

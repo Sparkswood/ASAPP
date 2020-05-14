@@ -31,10 +31,9 @@
 
 .game-status {
   ion-icon {
-    height: 100%;
-    margin-right: 6px;
+    height: 48px;
     
-    font-size: 1.2em;
+    font-size: 2em;
   }
 }
 
@@ -42,4 +41,13 @@
   span {
     margin: 4px 0;
   }
+}
+
+.bottom-wrapper {
+  position: absolute;
+  bottom: 0; 
+  right: 0;
+  left: 0;
+
+  color: rgba($color: #888, $alpha: 0.5)
 }

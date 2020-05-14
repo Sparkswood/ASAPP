@@ -35,3 +35,15 @@
 .fx-justify-spread {
     justify-content: spread;
 }
+
+.fx-justify-between {
+    justify-content: space-between;
+}
+
+.fx-wrap {
+    flex-wrap: wrap;
+}
+
+.fx-no-wrap {
+    flex-wrap: nowrap;
+}

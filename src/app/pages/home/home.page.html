@@ -1,5 +1,5 @@
 <ion-header [translucent]="true">
-  <ion-toolbar color="primaryT">
+  <ion-toolbar color="primary">
     <ion-buttons slot="start">
       <ion-button>
         <ion-icon slot="icon-only" name="chevron-back"></ion-icon>
@@ -18,8 +18,6 @@
       <div class="fx-col fx-align-center fx-justify-center">
         <ion-input (ionInput)="setPlayerName($event)" type="text" fill="outline" placeholder="Enter your name...">
         </ion-input>
-
-        <span>Player id: {{ playerId }} | {{ isPlayerReady ? 'ready' : 'not ready'  }}</span>
       </div>
       <div class="fx-col fx-align-center fx-justify-center">
         <ion-button style="--border-radius: 100px" (click)="reportReadyState()" [disabled]="!isPlayerNameValid">Ready
@@ -29,7 +27,7 @@
         </ion-button>
       </div>
 
-      <div class="game-status fx-row fx-justify-center">
+      <div class="game-status fx-col fx-justify-center fx-align-center">
         <ion-icon name="{{ getGameStatusIconName() }}" color="primary"></ion-icon>
         <span>{{ gameStatus.toString() }}</span>
       </div>
@@ -39,7 +37,11 @@
         <span>Currently connected players: {{ numberOfConnectedPlayers }}</span>
         <span>Ready players: {{ numberOfReadyPlayers }}</span>
       </div> -->
+    </div>
+    <div class="bottom-wrapper fx-col fx-justify-between fx-align-center">
       <span>{{ socketStatusMessage }}</span>
+      <span> {{ isPlayerReady ? 'ready' : 'not ready'  }} </span>
+      <span *ngIf="playerId"> {{ playerId }} </span>
     </div>
   </div>
 
