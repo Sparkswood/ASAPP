@@ -3,6 +3,7 @@
 
 /** Ionic CSS Variables **/
 :root {
+
   /** primary **/
   --ion-color-primary: #3880ff;
   --ion-color-primary-rgb: 56, 128, 255;
@@ -10,6 +11,14 @@
   --ion-color-primary-contrast-rgb: 255, 255, 255;
   --ion-color-primary-shade: #3171e0;
   --ion-color-primary-tint: #4c8dff;
+
+  /** primary translucent **/
+  --ion-color-primaryT: #3881ffcc;
+  --ion-color-primaryT-rgb: 56, 128, 255;
+  --ion-color-primaryT-contrast: #ffffff;
+  --ion-color-primaryT-contrast-rgb: 255, 255, 255;
+  --ion-color-primaryT-shade: #3171e0cc;
+  --ion-color-primaryT-tint: #4c8effcc;
 
   /** secondary **/
   --ion-color-secondary: #3dc2ff;
@@ -225,4 +234,14 @@
 
     --ion-tab-bar-background: #1f1f1f;
   }
+}
+
+/** Custom colors classes **/
+.ion-color-primaryT {
+  --ion-color-base: var(--ion-color-primaryT);
+  --ion-color-base-rgb: var(--ion-color-primaryT-rgb);
+  --ion-color-contrast: var(--ion-color-primaryT-contrast);
+  --ion-color-contrast-rgb: var(--ion-color-primaryT-contrast-rgb);
+  --ion-color-shade: var(--ion-color-primaryT-shade);
+  --ion-color-tint: var(--ion-color-primaryT-tint);
 }

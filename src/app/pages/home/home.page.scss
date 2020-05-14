@@ -1,6 +1,8 @@
 @import '../../../theme/variables.scss';
 @import '../../../theme/dimensions.scss';
+@import '../../../theme/common.scss';
 @import '../../../theme/flex.scss';
+
 
 .home-screen {
   height: 500px;
@@ -25,10 +27,6 @@
     width: 100%;
     height: $button-default-height;
   }
-}
-
-.full-height {
-  height: 100%;
 }
 
 .game-status {

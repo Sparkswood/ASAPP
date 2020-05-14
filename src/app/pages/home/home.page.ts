@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { GameStatus } from '../../model/enums/GameStatus';
 import { GameService } from '../../services/game.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
@@ -57,7 +58,7 @@ export class HomePage {
     this._gameService.setPlayerName(this._playerName);
   }
 
-  constructor(private _gameService: GameService) { }
+  constructor(private _gameService: GameService, private _router: Router) { }
 
   ngOnInit() {
     this._gameStatus = GameStatus.CONNECTED_TO_SERVER;
@@ -77,9 +78,12 @@ export class HomePage {
       this.socketStatusMessage = this.getWebSocketStatusString(socketStatus);
     })
 
-    this._gameService.gameStatus.subscribe(gameStatus => {
+    this._gameService.gameStatus.subscribe((gameStatus: GameStatus) => {
       console.log(`Game status: ${gameStatus}`);
       this._gameStatus = gameStatus;
+      if (this._gameStatus == GameStatus.GAME_IS_STARTING) {
+        this.navigateToGameScreen();
+      }
     })
 
     this._gameService.playerId.subscribe(playerId => {
@@ -159,6 +163,10 @@ export class HomePage {
 
   reportNotReadyState() {
     this._gameService.reportPlayerReadyState(false);
+  }
+
+  private navigateToGameScreen() {
+    this._router.navigate(['/game']);
   }
   //#endregion
 }
