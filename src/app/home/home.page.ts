@@ -10,14 +10,10 @@ import { ValueAccessor } from '@ionic/angular/directives/control-value-accessors
   styleUrls: ['home.page.scss'],
 })
 export class HomePage {
-  private WEBSOCKET_RECONNECT_TIMEOUT = 2000;
-  private WEBSOCKET_STATUS_CHECK_INTERVAL = 5000;
-
   private _gameStatus: GameStatus;
   private _requiredNumberOfPlayers: number;
   private _connectedPlayers: string[];
   private _readyPlayers: string[];
-  private _socket: WebSocket;
   private _playerName: string;
   private _isPlayerNameValid: boolean;
   private _playerId: string;
@@ -60,7 +56,6 @@ export class HomePage {
 
   setPlayerName(value: any) {
     this._playerName = value.target.value;
-    console.log(`playerNameSet ${this._playerName}`);
     this._gameService.setPlayerName(this._playerName);
   }
 
@@ -81,6 +76,7 @@ export class HomePage {
   private subscribeToService() {
     this._gameService.socketConnectionStatus.subscribe(socketStatus => {
       console.log(`Socket status: ${this.getWebSocketStatusString(socketStatus)}`);
+      this.socketStatusMessage = this.getWebSocketStatusString(socketStatus);
     })
 
     this._gameService.gameStatus.subscribe(gameStatus => {
@@ -89,17 +85,17 @@ export class HomePage {
     })
 
     this._gameService.playerId.subscribe(playerId => {
-      console.log(`Player id received: ${playerId}`);
+      console.log(`Player id: ${playerId}`);
       this._playerId = playerId;
     })
 
     this._gameService.isPlayerIdValid.subscribe(isIdValid => {
-      console.log(`Player id ${!isIdValid ? 'in' : ''}valid: ${isIdValid}`);
+      console.log(`Player id ${!isIdValid ? 'in' : ''}valid`);
       this._isPlayerIdValid = isIdValid;
     })
 
     this._gameService.isPlayerNameValid.subscribe(isNameValid => {
-      console.log(`Player name ${!isNameValid ? 'in' : ''}valid: ${isNameValid}`);
+      console.log(`Player name ${!isNameValid ? 'in' : ''}valid`);
       this._isPlayerNameValid = isNameValid;
     })
 

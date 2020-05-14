@@ -13,7 +13,7 @@ export interface Payload {
     error?: string;
 }
 
-export enum WebSocketMessageType {
+export enum MessageType {
     AUTH_WELCOME_SUCCESS = 'auth_welcome-success',
     AUTH_WELCOME_ERROR = 'auth_welcome-error',
     PLAYER_READY_SUCCES = 'player_ready-success',
