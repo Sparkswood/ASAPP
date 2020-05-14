@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, platformCore } from '@angular/core';
 import { GameStatus } from '../model/enums/GameStatus';
 import { WebSocketMessage, Payload } from '../model/WebSocketMessenger';
+import { GameService } from '../services/game.service';
 
 @Component({
   selector: 'app-home',
@@ -46,28 +47,44 @@ export class HomePage {
     return this._isPlayerReady;
   }
 
-  constructor() { }
+  constructor(private _gameService: GameService) { }
 
   ngOnInit() {
-    this._gameStatus = GameStatus.CONNECTING_TO_SERVER;
+    this._gameStatus = GameStatus.CONNECTED_TO_SERVER;
     this._requiredNumberOfPlayers = 2;
     this._connectedPlayers = ['Snoop Dogg', 'John Travolta'];
     this._readyPlayers = ['Snoop Dogg'];
-    this.openWebSocketConnection();
-    this.showWebSocketStatusWithInterval(this.WEBSOCKET_STATUS_CHECK_INTERVAL)
-  }
 
-  private openWebSocketConnection = () => {
-    this._socket = new WebSocket('ws://ec2-3-86-59-171.compute-1.amazonaws.com/');
-
-    this.initializeWebSocketEvents();
+    this.subscribeToService()
+    // this.openWebSocketConnection();
+    // this.showWebSocketStatusWithInterval(this.WEBSOCKET_STATUS_CHECK_INTERVAL)
   }
 
   //#region Initializers functions
-  private initializeWebSocketEvents = () => {
-    this._socket.onopen = this.handleWebSocketOpen
-    this._socket.onclose = this.handleWebSocketClose
-    this._socket.onmessage = this.handleSocketMessage;
+  private subscribeToService() {
+    this._gameService.socketConnectionStatus.subscribe(socketStatus => {
+      console.log(`Socket status: ${this.getWebSocketStatusString(socketStatus)}`);
+    })
+
+    this._gameService.gameStatus.subscribe(gameStatus => {
+      console.log(`Game status: ${gameStatus}`);
+      this._gameStatus = gameStatus;
+    })
+
+    this._gameService.playerId.subscribe(playerId => {
+      console.log(`Player id received: ${playerId}`);
+      this._playerId = playerId;
+    })
+
+    this._gameService.isPlayerIdValid.subscribe(isIdValid => {
+      console.log(`Player id ${!isIdValid ? 'in' : ''} valid: ${isIdValid}`);
+      this._isPlayerIdValid = isIdValid;
+    })
+
+    this._gameService.isPlayerReady.subscribe(readyStatus => {
+      console.log(`Player is ${!readyStatus ? 'not ' : ''}ready`)
+      this._isPlayerReady = readyStatus;
+    });
   }
   //#endregion
 
@@ -92,13 +109,13 @@ export class HomePage {
     return value;
   }
 
-  private getWebSocketStatusString(): string {
+  private getWebSocketStatusString(socketStatus: number): string {
     let value: string = "Unknown WebSocket status"
 
-    if (this._socket.readyState == this._socket.CONNECTING) value = 'WebSocket is connecting';
-    else if (this._socket.readyState == this._socket.OPEN) value = 'WebSocket is open';
-    else if (this._socket.readyState == this._socket.CLOSING) value = 'WebSocket is closing';
-    else if (this._socket.readyState == this._socket.CLOSED) value = 'WebSocket is closed';
+    if (socketStatus == 0) value = 'WebSocket is connecting';
+    else if (socketStatus == 1) value = 'WebSocket is open';
+    else if (socketStatus == 2) value = 'WebSocket is closing';
+    else if (socketStatus == 3) value = 'WebSocket is closed';
 
     return value;
   }
@@ -118,130 +135,14 @@ export class HomePage {
   }
   //#endregion
 
-  //#region WebSocket handlers
-  private handleWebSocketOpen = event => {
-    this._gameStatus = GameStatus.CONNECTING_TO_SERVER;
-    this._gameStatus = GameStatus.WAITING_FOR_OTHER_PLAYERS;
-
-    if (!this.isUserIdSet())
-      this.requestUserId();
-    else
-      this.checkUserId();
-
-    this.socketStatusMessage = this.getWebSocketStatusString();
-  };
-
-  private handleSocketMessage = (event) => {
-    const message: WebSocketMessage = JSON.parse(event.data);
-    let messageType = message.type;
-    console.log(`Message: ${messageType}`);
-
-    if (messageType === 'auth_welcome-success') this.handleWelcomeSuccess(message.payload);
-    else if (messageType === 'auth_welcome-error') this.handleWelcomeError(message.payload);
-    else if (messageType === 'player_ready-success') this.handlePlayerReadySuccess(message.payload);
-    else if (messageType === 'player_ready-error') this.handlePlayerReadyError(message.payload);
-  }
-
-  private handleWelcomeSuccess(payload: Payload) {
-    console.log('Welcome success');
-    const id = payload.id;
-
-    if (id != null) {
-      this._playerId = id;
-    }
-    console.log(`Player id: ${this._playerId}`);
-  }
-
-  private handleWelcomeError(payload: Payload) {
-    console.log(`Welcome error: ${payload.error}`);
-
-    this._playerId = null;
-    this._isPlayerIdValid = false;
-  }
-
-  private handlePlayerReadySuccess(payload: Payload) {
-    const readyState = payload.ready;
-
-    if (readyState != null) {
-      this._isPlayerReady = readyState;
-      console.log(`Player ${!this._isPlayerReady ? 'not ' : ''}ready`)
-    }
-  }
-
-  private handlePlayerReadyError(payload: Payload) {
-    console.log(payload);
-  }
-
-  private handleWebSocketClose = (event) => {
-    this._gameStatus = GameStatus.DISCONNECTED_FROM_SERVER;
-    this._gameStatus = GameStatus.RECONNECTING_TO_SERVER;
-    setTimeout(this.openWebSocketConnection, this.WEBSOCKET_RECONNECT_TIMEOUT);
-    console.log('Socket closed');
-    console.log(event);
-    this.socketStatusMessage = this.getWebSocketStatusString();
-  }
-  //#endregion
-
   //#region Actuators functions
   reportReadyState() {
-    this.reportPlayerReadyState(true);
+    this._gameService.reportPlayerReadyState(true);
+    // this.reportPlayerReadyState(true);
   }
 
   reportNotReadyState() {
-    this.reportPlayerReadyState(false);
-  }
-
-  private reportPlayerReadyState(value: boolean) {
-    if (this.isSocketOpened()) {
-      console.log(`Player ${!value ? 'not ' : ''}ready sent`);
-
-      console.log(`${this._playerId} ${value}`)
-      this._socket.send(
-        JSON.stringify({
-          type: 'player_ready',
-          payload: {
-            id: this._playerId,
-            ready: value
-          }
-        })
-      )
-    } else {
-      console.log(`Player ${!value ? 'not ' : ''}ready not sent. ${this.getWebSocketStatusString()}`);
-    }
-  }
-
-  showWebSocketStatusWithInterval(interval: number) {
-    setInterval(() => {
-      this.socketStatusMessage = this.getWebSocketStatusString();
-    }, interval);
-  }
-
-  private requestUserId() {
-    if (this.isSocketOpened()) {
-      console.log('Player id request sent');
-
-      this._socket.send(
-        JSON.stringify({
-          type: 'auth_welcome',
-          payload: {}
-        })
-      )
-    } else {
-      console.log(`Player id request not sent. ${this.getWebSocketStatusString()}`);
-    }
-  }
-
-  private checkUserId() {
-    if (this.isSocketOpened()) {
-      this._socket.send(
-        JSON.stringify({
-          type: 'auth_check',
-          payload: {
-            id: this._playerId
-          }
-        })
-      );
-    } else console.log(`Player id check not sent. ${this.getWebSocketStatusString()}`);
+    this._gameService.reportPlayerReadyState(false);
   }
   //#endregion
 }

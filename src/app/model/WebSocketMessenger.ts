@@ -12,3 +12,15 @@ export interface Payload {
     name?: string;
     error?: string;
 }
+
+export enum WebSocketMessageType {
+    AUTH_WELCOME_SUCCESS = 'auth_welcome-success',
+    AUTH_WELCOME_ERROR = 'auth_welcome-error',
+    PLAYER_READY_SUCCES = 'player_ready-success',
+    PLAYER_READY_ERROR = 'player_ready-error'
+}
+
+export enum PayloadMessage {
+    QUEUE_STAGE_HAS_ENDED = 'Queue stage has ended',
+    NO_MORE_SPACE_FOR_NEW_PLAYERS = 'No more space for new players'
+}
