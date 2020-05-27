@@ -26,7 +26,7 @@ export class GameService {
 
   constructor() {
     this.openWebSocketConnection()
-    this.startListeningSocketConnectionStatus();
+    this.startListeningOnSocketConnectionStatus();
   }
 
   //#region Initializers functions
@@ -41,7 +41,7 @@ export class GameService {
     this._socket.onmessage = this.handleSocketMessage;
   }
 
-  private startListeningSocketConnectionStatus() {
+  private startListeningOnSocketConnectionStatus() {
     setInterval(() => {
       this.socketConnectionStatus.next(this._socket.readyState)
     }, this.WEBSOCKET_STATUS_CHECK_INTERVAL);
@@ -153,9 +153,11 @@ export class GameService {
     } else if (!this.isSocketOpened()) {
       // TODO: Throw exception: socket closed
     } else {
+      console.log('reporting name change')
+      console.log(`${this.playerId.getValue().substr(0, 5)} ${this.playerName.getValue()}`);
       this._socket.send(
         JSON.stringify({
-          type: 'player_ready',
+          type: 'player_name',
           payload: {
             id: this.playerId.getValue(),
             name: this.playerName.getValue()
@@ -173,6 +175,8 @@ export class GameService {
     } else if (!this.isSocketOpened()) {
       // TODO: Throw exception: socket closed
     } else if (this.isPlayerReady.getValue() != value) { //to avoid redundant calls (e.g. when ready user call ready state)
+      console.log('reporting name change')
+      console.log(`${this.playerId.getValue().substr(0, 5)} ${this.playerName.getValue()}`);
       this._socket.send(
         JSON.stringify({
           type: 'player_ready',
