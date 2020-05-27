@@ -19,6 +19,7 @@ export class GameService {
   socketConnectionStatus = new Subject<number>();
   gameStatus = new BehaviorSubject<GameStatus>(GameStatus.CONNECTING_TO_SERVER);
   playerName = new BehaviorSubject<string>(null);
+  gameWord = new BehaviorSubject<string>(null);
   isPlayerNameValid = new BehaviorSubject<boolean>(false);
   playerId = new BehaviorSubject<string>(null);
   isPlayerIdValid = new BehaviorSubject<boolean>(false);
@@ -112,8 +113,9 @@ export class GameService {
   }
 
   private handlePlayerWord(payload: Payload) {
-    console.log(`Word received: ${payload.word}`);
+    const word = payload.word;
     this.gameStatus.next(GameStatus.GAME_IS_STARTING);
+    this.gameWord.next(word);
   }
 
   private handleWebSocketClose = (event) => {

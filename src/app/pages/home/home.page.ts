@@ -51,7 +51,7 @@ export class HomePage {
     return this._isPlayerNameValid;
   }
 
-  get layerName(): string {
+  get playerName(): string {
     return this._playerName;
   }
 
@@ -63,7 +63,7 @@ export class HomePage {
   constructor(private _gameService: GameService, private _router: Router, private platform: Platform) { }
 
   ngOnInit() {
-    this._gameStatus = GameStatus.CONNECTED_TO_SERVER;
+    this._gameStatus = GameStatus.CONNECTING_TO_SERVER;
     this._requiredNumberOfPlayers = 2;
     this._connectedPlayers = ['Snoop Dogg', 'John Travolta'];
     this._readyPlayers = ['Snoop Dogg'];
