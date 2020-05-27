@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { GameStatus } from '../../model/enums/GameStatus';
 import { GameService } from '../../services/game.service';
 import { Router } from '@angular/router';
+import { Platform } from '@ionic/angular';
 
 @Component({
   selector: 'app-home',
@@ -59,7 +60,7 @@ export class HomePage {
     this._gameService.setPlayerName(this._playerName);
   }
 
-  constructor(private _gameService: GameService, private _router: Router) { }
+  constructor(private _gameService: GameService, private _router: Router, private platform: Platform) { }
 
   ngOnInit() {
     this._gameStatus = GameStatus.CONNECTED_TO_SERVER;
@@ -68,8 +69,7 @@ export class HomePage {
     this._readyPlayers = ['Snoop Dogg'];
 
     this.subscribeToService()
-    // this.openWebSocketConnection();
-    // this.showWebSocketStatusWithInterval(this.WEBSOCKET_STATUS_CHECK_INTERVAL)
+    this.subscribeToBackButton();
   }
 
   //#region Initializers functions
@@ -83,6 +83,7 @@ export class HomePage {
       console.log(`Game status: ${gameStatus}`);
       this._gameStatus = gameStatus;
       if (this._gameStatus == GameStatus.GAME_IS_STARTING) {
+        this.unsubscribeFromBackButton();
         this.navigateToGameScreen();
       }
     })
@@ -183,4 +184,17 @@ export class HomePage {
     this._router.navigate(['/game']);
   }
   //#endregion
+
+  private subscribeToBackButton() {
+    this.platform.backButton.subscribe(() => this.exitApp());
+  }
+
+  private unsubscribeFromBackButton() {
+    this.platform.backButton.unsubscribe();
+  }
+
+  exitApp() {
+    console.log('Exit triggered')
+    navigator['app'].exitApp();
+  }
 }
