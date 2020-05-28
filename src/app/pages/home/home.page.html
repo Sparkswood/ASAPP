@@ -28,8 +28,14 @@
       </div>
 
       <div class="game-status fx-col fx-justify-center fx-align-center">
-        <ion-icon name="{{ getGameStatusIconName() }}" color="primary"></ion-icon>
+        <ion-icon name="{{ gameStatusIcon }}" color="primary"></ion-icon>
         <span>{{ gameStatus.toString() }}</span>
+      </div>
+
+      <div *ngIf="canRestartServer()" class="fx-row fx-justify-center">
+        <ion-button (click)="reconnect()" class="btn--reload">
+          <ion-icon slot="start" name="reload"></ion-icon> Reload
+        </ion-button>
       </div>
 
       <!-- <div class="game-details fx-col fx-align-center">
