@@ -38,7 +38,8 @@
 }
 
 .btn--reload {
-  width: $button-default-width !important;
+  width: $button-small-width !important;
+  border-radius: 100px !important;
 }
 
 .game-details {
