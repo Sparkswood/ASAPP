@@ -1,5 +1,5 @@
-<ion-header [translucent]="true">
-  <ion-toolbar color="primaryT">
+<ion-header [translucent]="true" style="z-index: 10000000000000;">
+  <ion-toolbar color="primary">
     <ion-buttons slot="start">
         <ion-back-button defaultHref="/home" icon="chevron-back">
         </ion-back-button>
@@ -13,21 +13,24 @@
   <ion-progress-bar color="tertiary" value="0.5"></ion-progress-bar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" class="custom-ion-content">
   <div class="full-height fx-col fx-align-center fx-justify-center">
 
-    <div *ngIf="image" class="home-screen">
-      <img [src]="image">
-    </div>
-
-    <div *ngIf="!image" class="home-screen">
-      <ion-icon class="no-image-icon" color="primaryT" name="image"></ion-icon>
-      <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button (click)="takePicture()" color="primaryT">
-          <ion-icon name="camera"></ion-icon>
+    <div *ngIf="picture != ''" class="full-screen">
+      <img [src]="picture" class="full-screen">
+      <ion-fab *ngIf="showFabs" vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button (click)="savePicture()" color="primaryT">
+          <ion-icon name="checkmark"></ion-icon>
+        </ion-fab-button>
+        <ion-fab-button (click)="discardPicture()" color="primaryT">
+          <ion-icon name="close"></ion-icon>
         </ion-fab-button>
       </ion-fab>
     </div>
 
+    <ion-button class="full-screen" color="contrast" *ngIf="picture == '' && !showFabs" (click)="takePicture()"></ion-button>
+
+
   </div>
+  
 </ion-content>

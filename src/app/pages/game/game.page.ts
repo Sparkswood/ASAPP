@@ -1,38 +1,88 @@
 import { Component, OnInit } from '@angular/core';
-import { Plugins, CameraSource, CameraResultType } from '@capacitor/core';
+import { CameraPreview, CameraPreviewPictureOptions, CameraPreviewOptions, CameraPreviewDimensions } from '@ionic-native/camera-preview/ngx';
 
 @Component({
   selector: 'app-game',
   templateUrl: './game.page.html',
   styleUrls: ['./game.page.scss'],
 })
-export class GamePage implements OnInit {
-  
-  image: any;
+export class GamePage {
 
-  constructor() { }
+  picture = '';
+  base64 = '';
 
-  ngOnInit() {
-    this.takePicture();
+  showFabs = false;
+
+  cameraPreviewOpts: CameraPreviewOptions = {
+    x: 0,
+    y: 62,
+    width: window.innerWidth,
+    height: window.innerHeight - 62,
+    camera: 'rear',
+    tapPhoto: true,
+    previewDrag: true,
+    toBack: true,
+    tapToFocus: true,
+    alpha: 1
   }
 
-  async takePicture() {
+  pictureOpts: CameraPreviewPictureOptions = {
+    width: 5000,
+    height: 5000,
+    quality: 90
+  }
 
-    // plugin runs native camera
-    const capturedImage = await Plugins.Camera.getPhoto({
-      quality: 90,
-      // allow to edit captured photo
-      allowEditing: false,
-      // source- can be also gallery and prompt
-      source: CameraSource.Camera,
-      resultType: CameraResultType.Uri
+
+  constructor(
+    private cameraPreview: CameraPreview
+  ) {
+    this.startCamera();
+  }
+
+  startCamera() {
+    this.cameraPreview.startCamera(this.cameraPreviewOpts).then(
+      () => {
+        this.show();
+      },
+      (err) => {
+        // TODO: Throw exception: Camera error
+      });
+  }
+
+  show() {
+    this.cameraPreview.show();
+  }
+
+  stopCamera() {
+    this.cameraPreview.stopCamera();
+  }
+
+  hide() {
+    this.cameraPreview.hide();
+  }
+
+  takePicture() {
+    this.cameraPreview.takePicture(this.pictureOpts).then((imageData) => {
+      this.picture = 'data:image/jpeg;base64,' + imageData;
+      this.base64 = imageData;
+      this.hide();
+      this.showFabs = true;
+    }, (err) => {
+      // TODO: Throw exception: Taking picture unsuccessful
     });
+  }
 
-    // webPath to render photo on app page
-    this.image = capturedImage.webPath;
+  savePicture() {
+    this.showFabs = false;
+    this.stopCamera();
+    // TODO: Send to websocket
+  }
 
-    // base64 format to send to websocket
-    console.log(capturedImage.base64String);
+  discardPicture() {
+    this.showFabs = false;
+    this.base64 = '';
+    this.picture = '';
+    this.show();
   }
 
 }
