@@ -10,7 +10,8 @@
     </ion-title>
   </ion-toolbar>
   <!-- jesli value powinno sie zmieniac jesli ktorys z graczy doda zdjecie i na max przechodzi do wynikow -->
-  <ion-progress-bar color="tertiary" value="0.5"></ion-progress-bar>
+  <ion-label class="progress-label">Waiting for other players...</ion-label>
+  <ion-progress-bar style="position: absolute;" color="tertiary" value="0.5"></ion-progress-bar>
 </ion-header>
 
 <ion-content [fullscreen]="true" class="custom-ion-content">
