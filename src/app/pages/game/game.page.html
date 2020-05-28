@@ -1,21 +1,33 @@
 <ion-header [translucent]="true">
   <ion-toolbar color="primaryT">
     <ion-buttons slot="start">
-      <ion-button>
-        <ion-icon slot="icon-only" name="chevron-back"></ion-icon>
-      </ion-button>
+        <ion-back-button defaultHref="/home" icon="chevron-back">
+        </ion-back-button>
     </ion-buttons>
 
     <ion-title>
       Photo ASAPP
     </ion-title>
   </ion-toolbar>
+  <!-- jesli value powinno sie zmieniac jesli ktorys z graczy doda zdjecie i na max przechodzi do wynikow -->
+  <ion-progress-bar color="tertiary" value="0.5"></ion-progress-bar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <div class="full-height fx-col fx-align-center fx-justify-center">
-    <div class="home-screen">
-      <h1>Hello, I'm a game screen</h1>
+
+    <div *ngIf="image" class="home-screen">
+      <img [src]="image">
     </div>
+
+    <div *ngIf="!image" class="home-screen">
+      <ion-icon class="no-image-icon" color="primaryT" name="image"></ion-icon>
+      <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button (click)="takePicture()" color="primaryT">
+          <ion-icon name="camera"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
+    </div>
+
   </div>
 </ion-content>
