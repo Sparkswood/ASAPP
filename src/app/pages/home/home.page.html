@@ -1,55 +1,63 @@
 <ion-header [translucent]="true">
-  <ion-toolbar color="primary">
-    <ion-buttons slot="start">
-      <ion-button ionBackButton (click)="exitApp()">
-        <ion-icon slot="icon-only" name="chevron-back"></ion-icon>
-      </ion-button>
-    </ion-buttons>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-button ionBackButton (click)="exitApp()">
+                <ion-icon slot="icon-only" name="chevron-back"></ion-icon>
+            </ion-button>
+        </ion-buttons>
 
-    <ion-title>
-      Photo ASAPP
-    </ion-title>
-  </ion-toolbar>
+        <ion-title>
+            Photo ASAPP
+        </ion-title>
+    </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div class="full-height fx-col fx-justify-center fx-align-center">
-    <div class="home-screen fx-col fx-justify-evenly">
-      <div class="fx-col fx-align-center fx-justify-center">
-        <ion-input (ionInput)="playerName = $event.target.value" type="text" fill="outline"
-          placeholder="Enter your name...">
-        </ion-input>
-      </div>
-      <div class="fx-col fx-align-center fx-justify-center">
-        <ion-button style="--border-radius: 100px" (click)="reportReadyState()" [disabled]="!isPlayerNameValid">Ready
-        </ion-button>
+    <div class="full-height fx-col fx-justify-center fx-align-center">
+        <div class="home-screen fx-col fx-justify-evenly">
+            <div class="fx-col fx-align-center fx-justify-center">
+                <ion-input (ionInput)="playerName = $event.target.value" type="text" fill="outline"
+                    placeholder="Enter your name...">
+                </ion-input>
+            </div>
+            <div class="fx-col fx-align-center fx-justify-center">
+                <ion-button style="--border-radius: 100px" (click)="reportReadyState()" [disabled]="!isPlayerNameValid">
+                    Ready
+                </ion-button>
 
-        <ion-button fill="outline" style="--border-radius: 100px" (click)="reportNotReadyState()">Not ready
-        </ion-button>
-      </div>
+                <ion-button fill="outline" style="--border-radius: 100px" (click)="reportNotReadyState()">Not ready
+                </ion-button>
+            </div>
 
-      <div class="game-status fx-col fx-justify-center fx-align-center">
-        <ion-icon name="{{ gameStatusIcon }}" color="primary"></ion-icon>
-        <span>{{ gameStatus.toString() }}</span>
-      </div>
+            <div class="game-status fx-col fx-justify-center fx-align-center">
+                <ion-icon name="{{ gameStatusIcon }}" color="primary"></ion-icon>
+                <span>{{ gameStatus.toString() }}</span>
+            </div>
 
-      <div *ngIf="canRestartServer()" class="fx-row fx-justify-center">
-        <ion-button (click)="reconnect()" style="--border-radius: 100px" class="btn--reload">
-          <ion-icon slot="start" name="reload"></ion-icon> Reload
-        </ion-button>
-      </div>
+            <div class="fx-row fx-justify-center" *ngIf="isPlayerAdmin">
+                <ion-button [disabled]="!(canGameBeStarted && isPlayerReady)">
+                    <ion-icon slot="start" name="play"></ion-icon>
+                    Start game
+                </ion-button>
+            </div>
 
-      <div class="game-details fx-col fx-align-center">
-        <span>Currently connected players: {{ numberOfConnectedPlayers }}</span>
-        <span>Ready players: {{ numberOfReadyPlayers }}</span>
-        <span>Free slots: {{ numberOfFreeSlots != null ? numberOfFreeSlots : ''}}</span>
-      </div>
+            <div *ngIf="canRestartServer()" class="fx-row fx-justify-center">
+                <ion-button (click)="reconnect()" style="--border-radius: 100px" class="btn--reload">
+                    <ion-icon slot="start" name="reload"></ion-icon> Reload
+                </ion-button>
+            </div>
+
+            <div class="game-details fx-col fx-align-center">
+                <span>Currently connected players: {{ numberOfConnectedPlayers }}</span>
+                <span>Ready players: {{ numberOfReadyPlayers }}</span>
+                <span>Free slots: {{ numberOfFreeSlots != null ? numberOfFreeSlots : ''}}</span>
+            </div>
+        </div>
+        <div class="bottom-wrapper fx-col fx-justify-between fx-align-center">
+            <span>{{ socketStatusMessage }}</span>
+            <span> {{ isPlayerReady ? 'ready' : 'not ready'}} {{ isPlayerAdmin ? '| admin' : '' }} </span>
+            <span *ngIf="playerId"> {{ playerId }} </span>
+        </div>
     </div>
-    <div class="bottom-wrapper fx-col fx-justify-between fx-align-center">
-      <span>{{ socketStatusMessage }}</span>
-      <span> {{ isPlayerReady ? 'ready' : 'not ready'}} {{ isPlayerAdmin ? '| admin' : '' }} </span>
-      <span *ngIf="playerId"> {{ playerId }} </span>
-    </div>
-  </div>
 
 </ion-content>

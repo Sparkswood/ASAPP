@@ -22,6 +22,7 @@ export class HomePage {
     private _numberOfConnectedPlayers: number;
     private _numberOfReadyPlayers: number;
     private _numberOfFreeSlots: number;
+    private _canGameBeStarted: boolean;
 
     // Player
     private _playerId: string;
@@ -62,6 +63,10 @@ export class HomePage {
 
     get numberOfFreeSlots(): number {
         return this._numberOfFreeSlots;
+    }
+
+    get canGameBeStarted(): boolean {
+        return this._canGameBeStarted;
     }
 
     // Player
@@ -107,8 +112,8 @@ export class HomePage {
         })
 
         this._gameService.gameStatus.subscribe((gameStatus: GameStatus) => {
-            this._gameStatus = gameStatus;
-            this._gameStatusIcon = this.getCurrentGameStatusIconName();
+            this._gameStatus = this.getGameStatusString(gameStatus);
+            this._gameStatusIcon = this.getCurrentGameStatusIconName(gameStatus);
 
             if (this._gameStatus == GameStatus.GAME_IS_STARTING) {
                 this.unsubscribeFromBackButton();
@@ -147,52 +152,80 @@ export class HomePage {
         this._gameService.numberOfFreeSlots.subscribe(freeSlots => {
             this._numberOfFreeSlots = freeSlots;
         })
+
+        this._gameService.canGameBeStarted.subscribe(canGameBeStarted => {
+            this._canGameBeStarted = canGameBeStarted;
+        })
     }
     //#endregion
 
     //#region Getters functions
-    getCurrentGameStatusIconName(): string {
-        let value = '';
+    private getGameStatusString(gameStatus: GameStatus) {
+        let newGameStatus;
 
         switch (this._gameStatus) {
-            case GameStatus.CONNECTING_TO_SERVER: {
-                value = 'hourglass';
+            case GameStatus.WAITING_FOR_ADMIN_TO_START_THE_GAME: {
+                if (this.isPlayerAdmin)
+                    newGameStatus = "You can now start a game";
+                else
+                    newGameStatus = "Waiting for admin to start the game";
                 break;
             }
-            case GameStatus.RECONNECTING_TO_SERVER: {
-                value = 'repeat';
-                break;
-            }
-            case GameStatus.ALL_SLOTS_ARE_FULL: {
-                value = 'sad';
-                break;
-            }
-            case GameStatus.SOME_GAME_IS_TAKING_PLACE: {
-                value = 'hand-left';
-                break;
-            }
-            case GameStatus.WAITING_FOR_READY_STATUS: {
-                value = 'glasses';
-                break;
-            }
-            case GameStatus.WAITING_FOR_OTHER_PLAYERS: {
-                value = 'hourglass';
-                break;
-            }
-            case GameStatus.GAME_IS_STARTING: {
-                value = 'aperture';
-                break;
-            }
-            case GameStatus.DISCONNECTED_FROM_SERVER: {
-                value = 'alert-circle';
-                break;
-            }
-            case GameStatus.INTERNAL_SERVER_ERROR: {
-                value = 'close-circle';
+            default: {
+                newGameStatus = gameStatus;
                 break;
             }
         }
-        return value;
+
+        return newGameStatus;
+    }
+
+    getCurrentGameStatusIconName(gameStatus: GameStatus): string {
+        let gameStatusIcon = '';
+
+        switch (gameStatus) {
+            case GameStatus.CONNECTING_TO_SERVER: {
+                gameStatusIcon = 'hourglass';
+                break;
+            }
+            case GameStatus.RECONNECTING_TO_SERVER: {
+                gameStatusIcon = 'repeat';
+                break;
+            }
+            case GameStatus.ALL_SLOTS_ARE_FULL: {
+                gameStatusIcon = 'sad';
+                break;
+            }
+            case GameStatus.SOME_GAME_IS_TAKING_PLACE: {
+                gameStatusIcon = 'hand-left';
+                break;
+            }
+            case GameStatus.WAITING_FOR_READY_STATUS: {
+                gameStatusIcon = 'glasses';
+                break;
+            }
+            case GameStatus.WAITING_FOR_OTHER_PLAYERS: {
+                gameStatusIcon = 'hourglass';
+                break;
+            }
+            case GameStatus.WAITING_FOR_ADMIN_TO_START_THE_GAME: {
+                gameStatusIcon = 'play-circle';
+                break;
+            }
+            case GameStatus.GAME_IS_STARTING: {
+                gameStatusIcon = 'aperture';
+                break;
+            }
+            case GameStatus.DISCONNECTED_FROM_SERVER: {
+                gameStatusIcon = 'alert-circle';
+                break;
+            }
+            case GameStatus.INTERNAL_SERVER_ERROR: {
+                gameStatusIcon = 'close-circle';
+                break;
+            }
+        }
+        return gameStatusIcon;
     }
 
     private getWebSocketStatusString(socketStatus: number): string {
@@ -243,6 +276,10 @@ export class HomePage {
 
     private unsubscribeFromBackButton() {
         this.platform.backButton.unsubscribe();
+    }
+
+    startGame() {
+        this._gameService.startGame();
     }
 
     reconnect() {

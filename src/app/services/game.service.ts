@@ -14,6 +14,7 @@ import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
 })
 export class GameService {
     private MAX_NUMBER_OF_PLAYERS = 4;
+    private REQUIRED_NUMBER_OF_PLAYERS = 2;
     private WEBSOCKET_RECONNECT_TIMEOUT = 1000;
     private WEBSOCKET_PING_INTERVAL = 5000;
     private WEBSOCKET_STATUS_CHECK_INTERVAL = 5000;
@@ -23,6 +24,14 @@ export class GameService {
     private _socket: WebSocket;
     socketConnectionStatus = new Subject<number>();
 
+    // Game details
+    numberOfConnectedPlayers = new BehaviorSubject<number>(0);
+    numberOfReadyPlayers = new BehaviorSubject<number>(0);
+    gameStatus = new BehaviorSubject<GameStatus>(GameStatus.CONNECTING_TO_SERVER);
+    gameWord = new BehaviorSubject<string>(null);
+    numberOfFreeSlots = new BehaviorSubject<number>(this.MAX_NUMBER_OF_PLAYERS);
+    canGameBeStarted = new BehaviorSubject<boolean>(false);
+
     // Current player
     playerName = new BehaviorSubject<string>(null);
     isPlayerNameValid = new BehaviorSubject<boolean>(false);
@@ -30,13 +39,6 @@ export class GameService {
     isPlayerIdValid = new BehaviorSubject<boolean>(false);
     isPlayerReady = new BehaviorSubject<boolean>(false);
     isPlayerAdmin = new BehaviorSubject<boolean>(false);
-
-    // Game details
-    numberOfConnectedPlayers = new BehaviorSubject<number>(0);
-    numberOfReadyPlayers = new BehaviorSubject<number>(0);
-    gameStatus = new BehaviorSubject<GameStatus>(GameStatus.CONNECTING_TO_SERVER);
-    gameWord = new BehaviorSubject<string>(null);
-    numberOfFreeSlots = new BehaviorSubject<number>(this.MAX_NUMBER_OF_PLAYERS);
 
     constructor() {
         this.openWebSocketConnection();
@@ -174,6 +176,19 @@ export class GameService {
             this.numberOfConnectedPlayers.next(connectedPlayers.length);
             this.numberOfReadyPlayers.next(numberOfReadyPlayers);
             this.numberOfFreeSlots.next(freeSlots);
+
+            if (numberOfReadyPlayers >= this.REQUIRED_NUMBER_OF_PLAYERS) {
+                this.canGameBeStarted.next(true);
+                this.gameStatus.next(GameStatus.WAITING_FOR_ADMIN_TO_START_THE_GAME)
+            }
+            else {
+                this.canGameBeStarted.next(false);
+
+                if (this.isPlayerReady)
+                    this.gameStatus.next(GameStatus.WAITING_FOR_OTHER_PLAYERS);
+                else
+                    this.gameStatus.next(GameStatus.WAITING_FOR_READY_STATUS);
+            }
         }
     }
 
@@ -292,6 +307,16 @@ export class GameService {
     private checkIfIsAdmin(player: Player) {
         if (this.playerId.getValue() == player.id) {
             this.isPlayerAdmin.next(player.isAdmin);
+        }
+    }
+
+    startGame() {
+        if (this.isPlayerAdmin.getValue()) {
+            const startGameRequest = {
+                type: MessageType.GAME_START,
+                payload: {}
+            }
+            this._socket.send(JSON.stringify(startGameRequest));
         }
     }
 

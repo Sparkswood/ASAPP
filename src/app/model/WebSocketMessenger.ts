@@ -22,6 +22,7 @@ export enum MessageType {
     AUTH_WELCOME_SUCCESS = 'auth_welcome-success',
     AUTH_WELCOME_ERROR = 'auth_welcome-error',
     ERROR_INTERNAL = 'error_internal',
+    GAME_START = 'game_start',
     PLAYER_READY = 'player_ready',
     PLAYER_NAME = 'player_name',
     PLAYER_PING = 'player_ping',
