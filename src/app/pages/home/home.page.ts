@@ -13,7 +13,7 @@ import { Player } from 'src/app/model/Player';
 export class HomePage {
 
     // WebSocket
-    socketStatusMessage: string = '';
+    private _socketStatusMessage: string = '';
 
     // Game
     private _gameStatus: GameStatus;
@@ -21,6 +21,7 @@ export class HomePage {
     private _gameStatusIcon: string;
     private _numberOfConnectedPlayers: number;
     private _numberOfReadyPlayers: number;
+    private _numberOfFreeSlots: number;
 
     // Player
     private _playerId: string;
@@ -32,6 +33,13 @@ export class HomePage {
 
     isIconSpinning: boolean = false;
 
+
+    // WebSocket
+    get socketStatusMessage(): string {
+        return this._socketStatusMessage;
+    }
+
+    // Game
     get requiredNumberOfPlayers(): number {
         return this._requiredNumberOfPlayers;
     }
@@ -48,6 +56,15 @@ export class HomePage {
         return this._gameStatus;
     }
 
+    get gameStatusIcon(): string {
+        return this._gameStatusIcon;
+    }
+
+    get numberOfFreeSlots(): number {
+        return this._numberOfFreeSlots;
+    }
+
+    // Player
     get playerId() {
         return this._playerId;
     }
@@ -68,12 +85,8 @@ export class HomePage {
         return this._playerName;
     }
 
-    get gameStatusIcon(): string {
-        return this._gameStatusIcon;
-    }
-
-    setPlayerName(value: any) {
-        this._playerName = value.target.value;
+    set playerName(value: string) {
+        this._playerName = value;
         this._gameService.setPlayerName(this._playerName);
     }
 
@@ -90,7 +103,7 @@ export class HomePage {
     //#region Initializers functions
     private subscribeToService() {
         this._gameService.socketConnectionStatus.subscribe(socketStatus => {
-            this.socketStatusMessage = this.getWebSocketStatusString(socketStatus);
+            this._socketStatusMessage = this.getWebSocketStatusString(socketStatus);
         })
 
         this._gameService.gameStatus.subscribe((gameStatus: GameStatus) => {
@@ -129,6 +142,10 @@ export class HomePage {
 
         this._gameService.isPlayerAdmin.subscribe(isAdmin => {
             this._isPlayerAdmin = isAdmin;
+        })
+
+        this._gameService.numberOfFreeSlots.subscribe(freeSlots => {
+            this._numberOfFreeSlots = freeSlots;
         })
     }
     //#endregion

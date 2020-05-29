@@ -16,7 +16,8 @@
   <div class="full-height fx-col fx-justify-center fx-align-center">
     <div class="home-screen fx-col fx-justify-evenly">
       <div class="fx-col fx-align-center fx-justify-center">
-        <ion-input (ionInput)="setPlayerName($event)" type="text" fill="outline" placeholder="Enter your name...">
+        <ion-input (ionInput)="playerName = $event.target.value" type="text" fill="outline"
+          placeholder="Enter your name...">
         </ion-input>
       </div>
       <div class="fx-col fx-align-center fx-justify-center">
@@ -41,6 +42,7 @@
       <div class="game-details fx-col fx-align-center">
         <span>Currently connected players: {{ numberOfConnectedPlayers }}</span>
         <span>Ready players: {{ numberOfReadyPlayers }}</span>
+        <span>Free slots: {{ numberOfFreeSlots != null ? numberOfFreeSlots : ''}}</span>
       </div>
     </div>
     <div class="bottom-wrapper fx-col fx-justify-between fx-align-center">

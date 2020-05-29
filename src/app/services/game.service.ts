@@ -13,6 +13,7 @@ import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
     providedIn: 'root'
 })
 export class GameService {
+    private MAX_NUMBER_OF_PLAYERS = 4;
     private WEBSOCKET_RECONNECT_TIMEOUT = 1000;
     private WEBSOCKET_PING_INTERVAL = 5000;
     private WEBSOCKET_STATUS_CHECK_INTERVAL = 5000;
@@ -35,6 +36,7 @@ export class GameService {
     numberOfReadyPlayers = new BehaviorSubject<number>(0);
     gameStatus = new BehaviorSubject<GameStatus>(GameStatus.CONNECTING_TO_SERVER);
     gameWord = new BehaviorSubject<string>(null);
+    numberOfFreeSlots = new BehaviorSubject<number>(this.MAX_NUMBER_OF_PLAYERS);
 
     constructor() {
         this.openWebSocketConnection();
@@ -60,7 +62,7 @@ export class GameService {
 
     private sendPing = () => {
         if (this.isPlayerIdValid.getValue()) {
-            console.log('ping sent');
+            console.log('Ping');
 
             const pingRequest = {
                 type: MessageType.PLAYER_PING,
@@ -106,7 +108,7 @@ export class GameService {
         else if (messageType === MessageType.PLAYER_READY_SUCCES) this.handlePlayerReadySuccess(message.payload);
         else if (messageType === MessageType.PLAYER_READY_ERROR) this.handlePlayerReadyError(message.payload);
         else if (messageType === MessageType.PLAYERS_INFORMATION) this.handlePlayersInformation(message.payload);
-        else if (messageType === MessageType.PLAYER_PONG) this.handlePlayersInformation(message.payload);
+        else if (messageType === MessageType.PLAYER_PONG) this.handlePong();
         else if (messageType === MessageType.ERROR_INTERNAL) this.handleInternalError(message.payload);
         else if (messageType === MessageType.PLAYER_WORD) this.handlePlayerWord(message.payload);
         else console.log(`   message type: ${messageType}`);
@@ -151,11 +153,15 @@ export class GameService {
     }
 
     private handlePlayersInformation(payload: Payload) {
-        console.log(payload);
-
         const allPlayers = payload.information;
+
         if (allPlayers) {
             let numberOfReadyPlayers = 0;
+
+            const connectedPlayers = allPlayers.filter(rawPlayer => {
+                const player = new Player(rawPlayer);
+                return player.isActive;
+            });
 
             allPlayers.forEach(rawPlayer => {
                 const player = new Player(rawPlayer)
@@ -163,14 +169,16 @@ export class GameService {
                 this.checkIfIsAdmin(player);
             });
 
-            const connectedPlayers = allPlayers.filter(rawPlayer => {
-                const player = new Player(rawPlayer);
-                return player.isActive;
-            })
+            const freeSlots = this.MAX_NUMBER_OF_PLAYERS - allPlayers.length;
 
-            this.numberOfReadyPlayers.next(numberOfReadyPlayers);
             this.numberOfConnectedPlayers.next(connectedPlayers.length);
+            this.numberOfReadyPlayers.next(numberOfReadyPlayers);
+            this.numberOfFreeSlots.next(freeSlots);
         }
+    }
+
+    private handlePong() {
+        console.log(`Pong`)
     }
 
     private handleInternalError(payload: Payload) {
