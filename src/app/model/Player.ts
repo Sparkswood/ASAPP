@@ -19,6 +19,10 @@ export class Player {
         return this._admin;
     }
 
+    get isActive(): boolean {
+        return this._active;
+    }
+
     constructor(player: RawPlayer) {
         this._id = player.id;
         this._name = player.name;

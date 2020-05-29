@@ -24,6 +24,8 @@ export enum MessageType {
     ERROR_INTERNAL = 'error_internal',
     PLAYER_READY = 'player_ready',
     PLAYER_NAME = 'player_name',
+    PLAYER_PING = 'player_ping',
+    PLAYER_PONG = 'player_pong',
     PLAYER_READY_SUCCES = 'player_ready-success',
     PLAYER_READY_ERROR = 'player_ready-error',
     PLAYER_WORD = 'player_word',

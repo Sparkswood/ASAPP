@@ -5,12 +5,16 @@ import { Subject, BehaviorSubject } from 'rxjs';
 import { Message } from '@angular/compiler/src/i18n/i18n_ast';
 import { Platform } from '@ionic/angular';
 import { Player } from '../model/Player';
+import { connect } from 'http2';
+import { __core_private_testing_placeholder__ } from '@angular/core/testing';
+import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
 
 @Injectable({
     providedIn: 'root'
 })
 export class GameService {
     private WEBSOCKET_RECONNECT_TIMEOUT = 1000;
+    private WEBSOCKET_PING_INTERVAL = 5000;
     private WEBSOCKET_STATUS_CHECK_INTERVAL = 5000;
     private WEBSOCKET_URL = 'ws://fast-photo.herokuapp.com/';
 
@@ -41,12 +45,34 @@ export class GameService {
     private openWebSocketConnection() {
         this._socket = new WebSocket(this.WEBSOCKET_URL);
         this.initializeWebSocketEvents();
+        this.startPinging();
     }
 
     private initializeWebSocketEvents() {
         this._socket.onopen = this.handleWebSocketOpen;
         this._socket.onclose = this.handleWebSocketClose;
         this._socket.onmessage = this.handleSocketMessage;
+    }
+
+    private startPinging() {
+        setInterval(this.sendPing, this.WEBSOCKET_PING_INTERVAL);
+    }
+
+    private sendPing = () => {
+        if (this.isPlayerIdValid.getValue()) {
+            console.log('ping sent');
+
+            const pingRequest = {
+                type: MessageType.PLAYER_PING,
+                payload: {
+                    id: this.playerId.getValue()
+                }
+            }
+            this._socket.send(JSON.stringify(pingRequest))
+        }
+        else {
+            console.log('ping not sent');
+        }
     }
 
     private startListeningOnSocketConnectionStatus() {
@@ -80,6 +106,7 @@ export class GameService {
         else if (messageType === MessageType.PLAYER_READY_SUCCES) this.handlePlayerReadySuccess(message.payload);
         else if (messageType === MessageType.PLAYER_READY_ERROR) this.handlePlayerReadyError(message.payload);
         else if (messageType === MessageType.PLAYERS_INFORMATION) this.handlePlayersInformation(message.payload);
+        else if (messageType === MessageType.PLAYER_PONG) this.handlePlayersInformation(message.payload);
         else if (messageType === MessageType.ERROR_INTERNAL) this.handleInternalError(message.payload);
         else if (messageType === MessageType.PLAYER_WORD) this.handlePlayerWord(message.payload);
         else console.log(`   message type: ${messageType}`);
@@ -126,15 +153,20 @@ export class GameService {
     private handlePlayersInformation(payload: Payload) {
         console.log(payload);
 
-        const connectedPlayers = payload.information;
-        if (connectedPlayers) {
+        const allPlayers = payload.information;
+        if (allPlayers) {
             let numberOfReadyPlayers = 0;
 
-            connectedPlayers.forEach(rawPlayer => {
+            allPlayers.forEach(rawPlayer => {
                 const player = new Player(rawPlayer)
-                if (player.isReady) numberOfReadyPlayers++;
+                if (player.isActive && player.isReady) numberOfReadyPlayers++;
                 this.checkIfIsAdmin(player);
             });
+
+            const connectedPlayers = allPlayers.filter(rawPlayer => {
+                const player = new Player(rawPlayer);
+                return player.isActive;
+            })
 
             this.numberOfReadyPlayers.next(numberOfReadyPlayers);
             this.numberOfConnectedPlayers.next(connectedPlayers.length);
