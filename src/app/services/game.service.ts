@@ -2,6 +2,9 @@ import { Injectable } from '@angular/core';
 import { WebSocketMessage, Payload, PayloadMessage, MessageType } from '../model/WebSocketMessenger';
 import { GameStatus } from '../model/enums/GameStatus';
 import { Subject, BehaviorSubject } from 'rxjs';
+import { Message } from '@angular/compiler/src/i18n/i18n_ast';
+import { Platform } from '@ionic/angular';
+import { Player } from '../model/Player';
 
 @Injectable({
     providedIn: 'root'
@@ -9,21 +12,25 @@ import { Subject, BehaviorSubject } from 'rxjs';
 export class GameService {
     private WEBSOCKET_RECONNECT_TIMEOUT = 1000;
     private WEBSOCKET_STATUS_CHECK_INTERVAL = 5000;
-    private WEBSOCKET_URL = 'ws://ec2-3-86-59-171.compute-1.amazonaws.com/';
+    private WEBSOCKET_URL = 'ws://fast-photo.herokuapp.com/';
 
-    private _connectedPlayers: string[];
-    private _readyPlayers: string[];
-
+    // WebSocket
     private _socket: WebSocket;
-
     socketConnectionStatus = new Subject<number>();
-    gameStatus = new BehaviorSubject<GameStatus>(GameStatus.CONNECTING_TO_SERVER);
+
+    // Current player
     playerName = new BehaviorSubject<string>(null);
-    gameWord = new BehaviorSubject<string>(null);
     isPlayerNameValid = new BehaviorSubject<boolean>(false);
     playerId = new BehaviorSubject<string>(null);
     isPlayerIdValid = new BehaviorSubject<boolean>(false);
     isPlayerReady = new BehaviorSubject<boolean>(false);
+    isPlayerAdmin = new BehaviorSubject<boolean>(false);
+
+    // Game details
+    numberOfConnectedPlayers = new BehaviorSubject<number>(0);
+    numberOfReadyPlayers = new BehaviorSubject<number>(0);
+    gameStatus = new BehaviorSubject<GameStatus>(GameStatus.CONNECTING_TO_SERVER);
+    gameWord = new BehaviorSubject<string>(null);
 
     constructor() {
         this.openWebSocketConnection();
@@ -51,8 +58,6 @@ export class GameService {
 
     //#region WebSocket handlers
     private handleWebSocketOpen = () => {
-        this.gameStatus.next(GameStatus.CONNECTING_TO_SERVER);
-
         if (this.isPlayerReady.getValue())
             this.gameStatus.next(GameStatus.WAITING_FOR_OTHER_PLAYERS);
         else
@@ -60,22 +65,24 @@ export class GameService {
 
         this.socketConnectionStatus.next(this._socket.OPEN);
 
-        if (this.isUserIdSet())
-            this.checkUserId();
+        if (this.isPlayerIdSet())
+            this.checkPlayerId();
         else
-            this.requestUserId();
+            this.requestPlayerId();
     };
 
     private handleSocketMessage = (event) => {
         const message: WebSocketMessage = JSON.parse(event.data);
         let messageType = message.type;
-        console.log(`   message type: ${messageType}`);
 
         if (messageType === MessageType.AUTH_WELCOME_SUCCESS) this.handleWelcomeSuccess(message.payload);
         else if (messageType === MessageType.AUTH_WELCOME_ERROR) this.handleWelcomeError(message.payload);
         else if (messageType === MessageType.PLAYER_READY_SUCCES) this.handlePlayerReadySuccess(message.payload);
         else if (messageType === MessageType.PLAYER_READY_ERROR) this.handlePlayerReadyError(message.payload);
+        else if (messageType === MessageType.PLAYERS_INFORMATION) this.handlePlayersInformation(message.payload);
+        else if (messageType === MessageType.ERROR_INTERNAL) this.handleInternalError(message.payload);
         else if (messageType === MessageType.PLAYER_WORD) this.handlePlayerWord(message.payload);
+        else console.log(`   message type: ${messageType}`);
     }
 
     private handleWelcomeSuccess(payload: Payload) {
@@ -91,7 +98,6 @@ export class GameService {
     }
 
     private handleWelcomeError(payload: Payload) {
-        console.log(`Welcome error: ${payload.error}`);
         if (payload.error == PayloadMessage.NO_MORE_SPACE_FOR_NEW_PLAYERS) {
             this.gameStatus.next(GameStatus.ALL_SLOTS_ARE_FULL);
         } else if (payload.error == PayloadMessage.QUEUE_STAGE_HAS_ENDED) {
@@ -117,6 +123,30 @@ export class GameService {
         console.log(payload);
     }
 
+    private handlePlayersInformation(payload: Payload) {
+        console.log(payload);
+
+        const connectedPlayers = payload.information;
+        if (connectedPlayers) {
+            let numberOfReadyPlayers = 0;
+
+            connectedPlayers.forEach(rawPlayer => {
+                const player = new Player(rawPlayer)
+                if (player.isReady) numberOfReadyPlayers++;
+                this.checkIfIsAdmin(player);
+            });
+
+            this.numberOfReadyPlayers.next(numberOfReadyPlayers);
+            this.numberOfConnectedPlayers.next(connectedPlayers.length);
+        }
+    }
+
+    private handleInternalError(payload: Payload) {
+        console.log(payload);
+
+        this.gameStatus.next(GameStatus.INTERNAL_SERVER_ERROR);
+    }
+
     private handlePlayerWord(payload: Payload) {
         const word = payload.word;
         this.gameStatus.next(GameStatus.GAME_IS_STARTING);
@@ -124,7 +154,6 @@ export class GameService {
     }
 
     private handleWebSocketClose = (event) => {
-        this.gameStatus.next(GameStatus.DISCONNECTED_FROM_SERVER);
         this.gameStatus.next(GameStatus.RECONNECTING_TO_SERVER);
         this.socketConnectionStatus.next(this._socket.CLOSED);
         setTimeout(this.openWebSocketConnection, this.WEBSOCKET_RECONNECT_TIMEOUT);
@@ -136,7 +165,7 @@ export class GameService {
         return this._socket.readyState == this._socket.OPEN;
     }
 
-    private isUserIdSet(): boolean {
+    private isPlayerIdSet(): boolean {
         return this.playerId.getValue() != null;
     }
     //#endregion
@@ -160,11 +189,9 @@ export class GameService {
         } else if (!this.isSocketOpened()) {
             // TODO: Throw exception: socket closed
         } else {
-            console.log('reporting name change');
-            console.log(`${this.playerId.getValue().substr(0, 5)} ${this.playerName.getValue()}`);
             this._socket.send(
                 JSON.stringify({
-                    type: 'player_name',
+                    type: MessageType.PLAYER_NAME,
                     payload: {
                         id: this.playerId.getValue(),
                         name: this.playerName.getValue()
@@ -181,12 +208,10 @@ export class GameService {
             // TODO: Throw exception: invalid player name
         } else if (!this.isSocketOpened()) {
             // TODO: Throw exception: socket closed
-        } else if (this.isPlayerReady.getValue() != value) { //to avoid redundant calls (e.g. when ready user call ready state)
-            console.log('reporting name change');
-            console.log(`${this.playerId.getValue().substr(0, 5)} ${this.playerName.getValue()}`);
+        } else if (this.isPlayerReady.getValue() != value) { //to avoid redundant calls (e.g. when ready player call ready state)
             this._socket.send(
                 JSON.stringify({
-                    type: 'player_ready',
+                    type: MessageType.PLAYER_READY,
                     payload: {
                         id: this.playerId.getValue(),
                         ready: value
@@ -196,31 +221,37 @@ export class GameService {
         }
     }
 
-    private requestUserId() {
+    private requestPlayerId() {
         if (!this.isSocketOpened()) {
             // TODO: Throw exception: socekt closed
         } else {
             this._socket.send(
                 JSON.stringify({
-                    type: 'auth_welcome',
+                    type: MessageType.AUTH_WELCOME,
                     payload: {}
                 })
             );
         }
     }
 
-    private checkUserId() {
+    private checkPlayerId() {
         if (!this.isSocketOpened()) {
             // TODO: Throw exception: socekt closed
         } else {
             this._socket.send(
                 JSON.stringify({
-                    type: 'auth_welcome',
+                    type: MessageType.AUTH_WELCOME,
                     payload: {
                         id: this.playerId.getValue()
                     }
                 })
             );
+        }
+    }
+
+    private checkIfIsAdmin(player: Player) {
+        if (this.playerId.getValue() == player.id) {
+            this.isPlayerAdmin.next(player.isAdmin);
         }
     }
 

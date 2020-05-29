@@ -38,15 +38,14 @@
         </ion-button>
       </div>
 
-      <!-- <div class="game-details fx-col fx-align-center">
-        <span>Required number of players: {{ requiredNumberOfPlayers }}</span>
+      <div class="game-details fx-col fx-align-center">
         <span>Currently connected players: {{ numberOfConnectedPlayers }}</span>
         <span>Ready players: {{ numberOfReadyPlayers }}</span>
-      </div> -->
+      </div>
     </div>
     <div class="bottom-wrapper fx-col fx-justify-between fx-align-center">
       <span>{{ socketStatusMessage }}</span>
-      <span> {{ isPlayerReady ? 'ready' : 'not ready'  }} </span>
+      <span> {{ isPlayerReady ? 'ready' : 'not ready'}} {{ isPlayerAdmin ? '| admin' : '' }} </span>
       <span *ngIf="playerId"> {{ playerId }} </span>
     </div>
   </div>

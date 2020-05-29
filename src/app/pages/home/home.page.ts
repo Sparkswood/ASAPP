@@ -3,6 +3,7 @@ import { GameStatus } from '../../model/enums/GameStatus';
 import { GameService } from '../../services/game.service';
 import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
+import { Player } from 'src/app/model/Player';
 
 @Component({
     selector: 'app-home',
@@ -10,30 +11,37 @@ import { Platform } from '@ionic/angular';
     styleUrls: ['home.page.scss'],
 })
 export class HomePage {
+
+    // WebSocket
+    socketStatusMessage: string = '';
+
+    // Game
     private _gameStatus: GameStatus;
     private _requiredNumberOfPlayers: number;
-    private _connectedPlayers: string[];
-    private _readyPlayers: string[];
+    private _gameStatusIcon: string;
+    private _numberOfConnectedPlayers: number;
+    private _numberOfReadyPlayers: number;
+
+    // Player
+    private _playerId: string;
     private _playerName: string;
     private _isPlayerNameValid: boolean;
-    private _playerId: string;
     private _isPlayerIdValid: boolean;
     private _isPlayerReady: boolean;
-    private _gameStatusIcon: string;
+    private _isPlayerAdmin: boolean;
 
     isIconSpinning: boolean = false;
-    socketStatusMessage: string = ' ';
 
     get requiredNumberOfPlayers(): number {
         return this._requiredNumberOfPlayers;
     }
 
     get numberOfConnectedPlayers(): number {
-        return this._connectedPlayers.length;
+        return this._numberOfConnectedPlayers;
     }
 
     get numberOfReadyPlayers(): number {
-        return this._readyPlayers.length;
+        return this._numberOfReadyPlayers;
     }
 
     get gameStatus(): GameStatus {
@@ -46,6 +54,10 @@ export class HomePage {
 
     get isPlayerReady(): boolean {
         return this._isPlayerReady;
+    }
+
+    get isPlayerAdmin(): boolean {
+        return this._isPlayerAdmin;
     }
 
     get isPlayerNameValid(): boolean {
@@ -70,8 +82,6 @@ export class HomePage {
     ngOnInit() {
         this._gameStatus = GameStatus.CONNECTING_TO_SERVER;
         this._requiredNumberOfPlayers = 2;
-        this._connectedPlayers = ['Snoop Dogg', 'John Travolta'];
-        this._readyPlayers = ['Snoop Dogg'];
 
         this.subscribeToService();
         this.subscribeToBackButton();
@@ -80,14 +90,13 @@ export class HomePage {
     //#region Initializers functions
     private subscribeToService() {
         this._gameService.socketConnectionStatus.subscribe(socketStatus => {
-            console.log(`Socket status: ${this.getWebSocketStatusString(socketStatus)}`);
             this.socketStatusMessage = this.getWebSocketStatusString(socketStatus);
         })
 
         this._gameService.gameStatus.subscribe((gameStatus: GameStatus) => {
-            console.log(`Game status: ${gameStatus}`);
             this._gameStatus = gameStatus;
             this._gameStatusIcon = this.getCurrentGameStatusIconName();
+
             if (this._gameStatus == GameStatus.GAME_IS_STARTING) {
                 this.unsubscribeFromBackButton();
                 this.navigateToGameScreen();
@@ -95,24 +104,32 @@ export class HomePage {
         })
 
         this._gameService.playerId.subscribe(playerId => {
-            console.log(`Player id: ${playerId}`);
             this._playerId = playerId;
         })
 
         this._gameService.isPlayerIdValid.subscribe(isIdValid => {
-            console.log(`Player id ${!isIdValid ? 'in' : ''}valid`);
             this._isPlayerIdValid = isIdValid;
         })
 
         this._gameService.isPlayerNameValid.subscribe(isNameValid => {
-            console.log(`Player name ${!isNameValid ? 'in' : ''}valid`);
             this._isPlayerNameValid = isNameValid;
         })
 
         this._gameService.isPlayerReady.subscribe(readyStatus => {
-            console.log(`Player is ${!readyStatus ? 'not ' : ''}ready`);
             this._isPlayerReady = readyStatus;
         });
+
+        this._gameService.numberOfReadyPlayers.subscribe(readyPlayers => {
+            this._numberOfReadyPlayers = readyPlayers;
+        });
+
+        this._gameService.numberOfConnectedPlayers.subscribe(connectedPlayers => {
+            this._numberOfConnectedPlayers = connectedPlayers;
+        });
+
+        this._gameService.isPlayerAdmin.subscribe(isAdmin => {
+            this._isPlayerAdmin = isAdmin;
+        })
     }
     //#endregion
 
@@ -153,6 +170,10 @@ export class HomePage {
                 value = 'alert-circle';
                 break;
             }
+            case GameStatus.INTERNAL_SERVER_ERROR: {
+                value = 'close-circle';
+                break;
+            }
         }
         return value;
     }
@@ -179,6 +200,7 @@ export class HomePage {
             GameStatus.ALL_SLOTS_ARE_FULL,
             GameStatus.DISCONNECTED_FROM_SERVER,
             GameStatus.SOME_GAME_IS_TAKING_PLACE,
+            GameStatus.INTERNAL_SERVER_ERROR
         ].includes(this.gameStatus);
     }
     //#endregion
@@ -211,7 +233,6 @@ export class HomePage {
     }
 
     exitApp() {
-        console.log('Exit triggered');
         navigator['app'].exitApp();
     }
 }
