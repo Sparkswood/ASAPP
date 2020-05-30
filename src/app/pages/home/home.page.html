@@ -35,7 +35,7 @@
             </div>
 
             <div class="fx-row fx-justify-center" *ngIf="isPlayerAdmin">
-                <ion-button [disabled]="!(canGameBeStarted && isPlayerReady)">
+                <ion-button (click)="startGame()" [disabled]="!(canGameBeStarted && isPlayerReady)">
                     <ion-icon slot="start" name="play"></ion-icon>
                     Start game
                 </ion-button>
@@ -48,7 +48,7 @@
             </div>
 
             <div class="game-details fx-col fx-align-center">
-                <span>Currently connected players: {{ numberOfConnectedPlayers }}</span>
+                <span>Connected players: {{ numberOfConnectedPlayers }}</span>
                 <span>Ready players: {{ numberOfReadyPlayers }}</span>
                 <span>Free slots: {{ numberOfFreeSlots != null ? numberOfFreeSlots : ''}}</span>
             </div>

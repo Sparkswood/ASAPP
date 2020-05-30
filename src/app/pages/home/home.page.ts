@@ -163,15 +163,13 @@ export class HomePage {
     private getGameStatusString(gameStatus: GameStatus) {
         let newGameStatus;
 
-        switch (this._gameStatus) {
+        switch (gameStatus) {
             case GameStatus.WAITING_FOR_ADMIN_TO_START_THE_GAME: {
-                if (this.isPlayerAdmin)
-                    newGameStatus = "You can now start a game";
-                else
-                    newGameStatus = "Waiting for admin to start the game";
+                newGameStatus = `Waiting for ${this.isPlayerAdmin ? 'you' : 'admin'} to start the game`;
                 break;
             }
             default: {
+                console.log('default');
                 newGameStatus = gameStatus;
                 break;
             }
@@ -221,6 +219,10 @@ export class HomePage {
                 break;
             }
             case GameStatus.INTERNAL_SERVER_ERROR: {
+                gameStatusIcon = 'close-circle';
+                break;
+            }
+            case GameStatus.AWS_KEYS_NOT_LOADED: {
                 gameStatusIcon = 'close-circle';
                 break;
             }

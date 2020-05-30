@@ -2,50 +2,63 @@ import { Injectable } from '@angular/core';
 import { WebSocketMessage, Payload, PayloadMessage, MessageType } from '../model/WebSocketMessenger';
 import { GameStatus } from '../model/enums/GameStatus';
 import { Subject, BehaviorSubject } from 'rxjs';
-import { Message } from '@angular/compiler/src/i18n/i18n_ast';
-import { Platform } from '@ionic/angular';
 import { Player } from '../model/Player';
-import { connect } from 'http2';
-import { __core_private_testing_placeholder__ } from '@angular/core/testing';
-import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
 
 @Injectable({
     providedIn: 'root'
 })
 export class GameService {
-    private MAX_NUMBER_OF_PLAYERS = 4;
-    private REQUIRED_NUMBER_OF_PLAYERS = 2;
-    private WEBSOCKET_RECONNECT_TIMEOUT = 1000;
-    private WEBSOCKET_PING_INTERVAL = 5000;
-    private WEBSOCKET_STATUS_CHECK_INTERVAL = 5000;
-    private WEBSOCKET_URL = 'ws://fast-photo.herokuapp.com/';
+    private readonly MAX_NUMBER_OF_PLAYERS = 4;
+    private readonly REQUIRED_NUMBER_OF_PLAYERS = 2;
+    private readonly WEBSOCKET_RECONNECT_TIMEOUT = 1000;
+    private readonly WEBSOCKET_PING_INTERVAL = 5000;
+    private readonly WEBSOCKET_STATUS_CHECK_INTERVAL = 5000;
+    private readonly WEBSOCKET_URL = 'ws://fast-photo.herokuapp.com/';
 
     // WebSocket
     private _socket: WebSocket;
     socketConnectionStatus = new Subject<number>();
 
     // Game details
-    numberOfConnectedPlayers = new BehaviorSubject<number>(0);
-    numberOfReadyPlayers = new BehaviorSubject<number>(0);
-    gameStatus = new BehaviorSubject<GameStatus>(GameStatus.CONNECTING_TO_SERVER);
-    gameWord = new BehaviorSubject<string>(null);
-    numberOfFreeSlots = new BehaviorSubject<number>(this.MAX_NUMBER_OF_PLAYERS);
-    canGameBeStarted = new BehaviorSubject<boolean>(false);
+    numberOfConnectedPlayers: BehaviorSubject<number>;
+    numberOfReadyPlayers: BehaviorSubject<number>;
+    gameStatus: BehaviorSubject<GameStatus>;
+    gameWord: BehaviorSubject<string>;
+    numberOfFreeSlots: BehaviorSubject<number>;
+    canGameBeStarted: BehaviorSubject<boolean>;
 
     // Current player
-    playerName = new BehaviorSubject<string>(null);
-    isPlayerNameValid = new BehaviorSubject<boolean>(false);
-    playerId = new BehaviorSubject<string>(null);
-    isPlayerIdValid = new BehaviorSubject<boolean>(false);
-    isPlayerReady = new BehaviorSubject<boolean>(false);
-    isPlayerAdmin = new BehaviorSubject<boolean>(false);
+    playerName: BehaviorSubject<string>;
+    isPlayerNameValid: BehaviorSubject<boolean>;
+    playerId: BehaviorSubject<string>;
+    isPlayerIdValid: BehaviorSubject<boolean>;
+    isPlayerReady: BehaviorSubject<boolean>;
+    isPlayerAdmin: BehaviorSubject<boolean>;
 
     constructor() {
+        this.setInitialValues();
         this.openWebSocketConnection();
         this.startListeningOnSocketConnectionStatus();
     }
 
     //#region Initializers functions
+    private setInitialValues() {
+        this.numberOfConnectedPlayers = new BehaviorSubject<number>(0);
+        this.numberOfReadyPlayers = new BehaviorSubject<number>(0);
+        this.gameStatus = new BehaviorSubject<GameStatus>(GameStatus.CONNECTING_TO_SERVER);
+        this.gameWord = new BehaviorSubject<string>(null);
+        this.numberOfFreeSlots = new BehaviorSubject<number>(this.MAX_NUMBER_OF_PLAYERS);
+        this.canGameBeStarted = new BehaviorSubject<boolean>(false);
+
+        // Current player
+        this.playerName = new BehaviorSubject<string>(null);
+        this.isPlayerNameValid = new BehaviorSubject<boolean>(false);
+        this.playerId = new BehaviorSubject<string>(null);
+        this.isPlayerIdValid = new BehaviorSubject<boolean>(false);
+        this.isPlayerReady = new BehaviorSubject<boolean>(false);
+        this.isPlayerAdmin = new BehaviorSubject<boolean>(false);
+    }
+
     private openWebSocketConnection() {
         this._socket = new WebSocket(this.WEBSOCKET_URL);
         this.initializeWebSocketEvents();
@@ -110,7 +123,10 @@ export class GameService {
         else if (messageType === MessageType.PLAYER_READY_SUCCES) this.handlePlayerReadySuccess(message.payload);
         else if (messageType === MessageType.PLAYER_READY_ERROR) this.handlePlayerReadyError(message.payload);
         else if (messageType === MessageType.PLAYERS_INFORMATION) this.handlePlayersInformation(message.payload);
+        else if (messageType === MessageType.PLAYER_PING_ERROR) this.handlePingError(message);
         else if (messageType === MessageType.PLAYER_PONG) this.handlePong();
+        else if (messageType === MessageType.GAME_START_SUCCESS) this.handleGameStartSuccess(message);
+        else if (messageType === MessageType.GAME_START_ERROR) this.handleGameStartError(message);
         else if (messageType === MessageType.ERROR_INTERNAL) this.handleInternalError(message.payload);
         else if (messageType === MessageType.PLAYER_WORD) this.handlePlayerWord(message.payload);
         else console.log(`   message type: ${messageType}`);
@@ -179,12 +195,14 @@ export class GameService {
 
             if (numberOfReadyPlayers >= this.REQUIRED_NUMBER_OF_PLAYERS) {
                 this.canGameBeStarted.next(true);
-                this.gameStatus.next(GameStatus.WAITING_FOR_ADMIN_TO_START_THE_GAME)
+                if (this.isPlayerReady.getValue()) {
+                    this.gameStatus.next(GameStatus.WAITING_FOR_ADMIN_TO_START_THE_GAME)
+                }
             }
             else {
                 this.canGameBeStarted.next(false);
 
-                if (this.isPlayerReady)
+                if (this.isPlayerReady.getValue())
                     this.gameStatus.next(GameStatus.WAITING_FOR_OTHER_PLAYERS);
                 else
                     this.gameStatus.next(GameStatus.WAITING_FOR_READY_STATUS);
@@ -192,20 +210,39 @@ export class GameService {
         }
     }
 
+    private handlePingError(message: WebSocketMessage) {
+        console.log(message);
+    }
+
     private handlePong() {
         console.log(`Pong`)
     }
 
+    private handleGameStartSuccess(message: any) {
+        console.log(message);
+    }
+
+    private handleGameStartError(message: any) {
+        console.log(message);
+    }
+
     private handleInternalError(payload: Payload) {
         console.log(payload);
-
+        if (payload.message && payload.message == PayloadMessage.NO_AWS_KEYS_LOADED) {
+            this.gameStatus.next(GameStatus.INTERNAL_SERVER_ERROR);
+        }
         this.gameStatus.next(GameStatus.INTERNAL_SERVER_ERROR);
     }
 
     private handlePlayerWord(payload: Payload) {
         const word = payload.word;
-        this.gameStatus.next(GameStatus.GAME_IS_STARTING);
-        this.gameWord.next(word);
+        if (this.isPlayerReady.getValue()) {
+            this.gameStatus.next(GameStatus.GAME_IS_STARTING);
+            this.gameWord.next(word);
+        }
+        else {
+            this.gameStatus.next(GameStatus.SOME_GAME_IS_TAKING_PLACE);
+        }
     }
 
     private handleWebSocketClose = (event) => {
@@ -311,13 +348,20 @@ export class GameService {
     }
 
     startGame() {
-        if (this.isPlayerAdmin.getValue()) {
+        console.log('game start')
+        if (this.playerId.getValue() && this.isPlayerAdmin.getValue()) {
+            console.log('game start');
+
             const startGameRequest = {
                 type: MessageType.GAME_START,
-                payload: {}
+                payload: {
+                    id: this.playerId.getValue()
+                }
             }
             this._socket.send(JSON.stringify(startGameRequest));
         }
+        else
+            console.log('player is not admin')
     }
 
     restartSocketConnection() {

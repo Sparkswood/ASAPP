@@ -9,5 +9,6 @@ export enum GameStatus {
     ALL_SLOTS_ARE_FULL = 'All game slots are full',
     DISCONNECTED_FROM_SERVER = 'Disconnected from server',
     RECONNECTING_TO_SERVER = 'Reconnecting to server',
-    INTERNAL_SERVER_ERROR = 'Internal server error'
+    INTERNAL_SERVER_ERROR = 'Internal server error',
+    AWS_KEYS_NOT_LOADED = 'AWS keys not loaded'
 }
