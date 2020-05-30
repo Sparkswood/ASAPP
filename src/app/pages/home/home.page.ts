@@ -4,6 +4,7 @@ import { GameService } from '../../services/game.service';
 import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
 import { Player } from 'src/app/model/Player';
+import { ToastComponent } from 'src/app/components/toast/toast.component';
 
 @Component({
     selector: 'app-home',
@@ -98,7 +99,8 @@ export class HomePage {
     constructor(
         private _gameService: GameService,
         private _router: Router,
-        private _platform: Platform
+        private _platform: Platform,
+        private _toastComponent: ToastComponent
     ) {}
 
     ngOnInit() {

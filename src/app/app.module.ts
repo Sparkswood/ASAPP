@@ -12,6 +12,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 import { CameraPreview } from '@ionic-native/camera-preview/ngx';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import { AlertComponent } from './components/alert/alert.component';
+import { ToastComponent } from './components/toast/toast.component';
 
 @NgModule({
   declarations: [AppComponent],
@@ -28,7 +29,8 @@ import { AlertComponent } from './components/alert/alert.component';
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     CameraPreview,
     AndroidPermissions,
-    AlertComponent
+    AlertComponent,
+    ToastComponent
   ],
   bootstrap: [AppComponent]
 })
