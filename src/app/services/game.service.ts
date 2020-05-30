@@ -3,6 +3,7 @@ import { WebSocketMessage, Payload, PayloadMessage, MessageType } from '../model
 import { GameStatus } from '../model/enums/GameStatus';
 import { Subject, BehaviorSubject } from 'rxjs';
 import { Player } from '../model/Player';
+import { RawPlayer } from '../model/RawPlayer';
 
 @Injectable({
     providedIn: 'root'
@@ -13,13 +14,13 @@ export class GameService {
     private readonly WEBSOCKET_RECONNECT_TIMEOUT = 1000;
     private readonly WEBSOCKET_PING_INTERVAL = 5000;
     private readonly WEBSOCKET_STATUS_CHECK_INTERVAL = 5000;
-    private readonly WEBSOCKET_URL = 'ws://fast-photo.herokuapp.com/';
+    private readonly WEBSOCKET_URL = 'wss://fast-photo.herokuapp.com/';
 
     // WebSocket
     private _socket: WebSocket;
     socketConnectionStatus = new Subject<number>();
 
-    // Game details
+    // Game
     numberOfConnectedPlayers: BehaviorSubject<number>;
     numberOfReadyPlayers: BehaviorSubject<number>;
     gameStatus: BehaviorSubject<GameStatus>;
@@ -27,7 +28,7 @@ export class GameService {
     numberOfFreeSlots: BehaviorSubject<number>;
     canGameBeStarted: BehaviorSubject<boolean>;
 
-    // Current player
+    // Player
     playerName: BehaviorSubject<string>;
     isPlayerNameValid: BehaviorSubject<boolean>;
     playerId: BehaviorSubject<string>;
@@ -59,7 +60,9 @@ export class GameService {
         this.isPlayerAdmin = new BehaviorSubject<boolean>(false);
     }
 
-    private openWebSocketConnection() {
+    private openWebSocketConnection = () => {
+        console.warn('opening websocket connection');
+        console.warn(this.WEBSOCKET_URL);
         this._socket = new WebSocket(this.WEBSOCKET_URL);
         this.initializeWebSocketEvents();
         this.startPinging();
@@ -76,7 +79,7 @@ export class GameService {
     }
 
     private sendPing = () => {
-        if (this.isPlayerIdValid.getValue()) {
+        if (this.isPlayerIdValid.getValue() && this._socket.readyState == WebSocket.OPEN) {
             console.log('Ping');
 
             const pingRequest = {
@@ -86,9 +89,6 @@ export class GameService {
                 }
             }
             this._socket.send(JSON.stringify(pingRequest))
-        }
-        else {
-            console.log('ping not sent');
         }
     }
 
@@ -101,10 +101,12 @@ export class GameService {
 
     //#region WebSocket handlers
     private handleWebSocketOpen = () => {
+        console.warn('socket open');
+
         if (this.isPlayerReady.getValue())
-            this.gameStatus.next(GameStatus.WAITING_FOR_OTHER_PLAYERS);
+            this.setGameStatus(GameStatus.WAITING_FOR_OTHER_PLAYERS);
         else
-            this.gameStatus.next(GameStatus.WAITING_FOR_READY_STATUS);
+            this.setGameStatus(GameStatus.WAITING_FOR_READY_STATUS);
 
         this.socketConnectionStatus.next(this._socket.OPEN);
 
@@ -146,10 +148,10 @@ export class GameService {
 
     private handleWelcomeError(payload: Payload) {
         if (payload.error == PayloadMessage.NO_MORE_SPACE_FOR_NEW_PLAYERS) {
-            this.gameStatus.next(GameStatus.ALL_SLOTS_ARE_FULL);
+            this.setGameStatus(GameStatus.ALL_SLOTS_ARE_FULL);
         } else if (payload.error == PayloadMessage.QUEUE_STAGE_HAS_ENDED) {
             // TODO: Handle proper action
-            this.gameStatus.next(GameStatus.SOME_GAME_IS_TAKING_PLACE);
+            this.setGameStatus(GameStatus.SOME_GAME_IS_TAKING_PLACE);
         }
 
         this.playerId.next(null);
@@ -163,7 +165,7 @@ export class GameService {
             this.isPlayerReady.next(readyState);
         }
 
-        this.gameStatus.next(this.isPlayerReady.getValue() ? GameStatus.WAITING_FOR_OTHER_PLAYERS : GameStatus.WAITING_FOR_READY_STATUS);
+        this.setGameStatus(this.isPlayerReady.getValue() ? GameStatus.WAITING_FOR_OTHER_PLAYERS : GameStatus.WAITING_FOR_READY_STATUS);
     }
 
     private handlePlayerReadyError(payload: Payload) {
@@ -172,46 +174,57 @@ export class GameService {
 
     private handlePlayersInformation(payload: Payload) {
         const allPlayers = payload.information;
-
         if (allPlayers) {
-            let numberOfReadyPlayers = 0;
-
-            const connectedPlayers = allPlayers.filter(rawPlayer => {
-                const player = new Player(rawPlayer);
-                return player.isActive;
-            });
-
-            allPlayers.forEach(rawPlayer => {
-                const player = new Player(rawPlayer)
-                if (player.isActive && player.isReady) numberOfReadyPlayers++;
-                this.checkIfIsAdmin(player);
-            });
+            const numberOfConnectedPlayers = this.getNumberOfConnectedPlayers(allPlayers);
+            const numberOfReadyPlayers = this.getNumberOfReadyPlayers(allPlayers);
 
             const freeSlots = this.MAX_NUMBER_OF_PLAYERS - allPlayers.length;
 
-            this.numberOfConnectedPlayers.next(connectedPlayers.length);
+            this.numberOfConnectedPlayers.next(numberOfConnectedPlayers);
             this.numberOfReadyPlayers.next(numberOfReadyPlayers);
             this.numberOfFreeSlots.next(freeSlots);
 
             if (numberOfReadyPlayers >= this.REQUIRED_NUMBER_OF_PLAYERS) {
                 this.canGameBeStarted.next(true);
                 if (this.isPlayerReady.getValue()) {
-                    this.gameStatus.next(GameStatus.WAITING_FOR_ADMIN_TO_START_THE_GAME)
+                    this.setGameStatus(GameStatus.WAITING_FOR_ADMIN_TO_START_THE_GAME)
                 }
             }
             else {
                 this.canGameBeStarted.next(false);
 
                 if (this.isPlayerReady.getValue())
-                    this.gameStatus.next(GameStatus.WAITING_FOR_OTHER_PLAYERS);
+                    this.setGameStatus(GameStatus.WAITING_FOR_OTHER_PLAYERS);
                 else
-                    this.gameStatus.next(GameStatus.WAITING_FOR_READY_STATUS);
+                    this.setGameStatus(GameStatus.WAITING_FOR_READY_STATUS);
             }
         }
     }
 
+    private getNumberOfConnectedPlayers(allPlayers: RawPlayer[]): number {
+        let connectedPlayers = 0;
+        allPlayers.forEach(rawPlayer => {
+            const player = new Player(rawPlayer)
+            if (player.isActive) connectedPlayers++;
+        });
+
+        return connectedPlayers;
+    }
+
+    private getNumberOfReadyPlayers(allPlayers: RawPlayer[]): number {
+        let readyPlayers = 0;
+        allPlayers.forEach(rawPlayer => {
+            const player = new Player(rawPlayer)
+            if (player.isActive && player.isReady) readyPlayers++;
+            this.checkIfIsAdmin(player);
+        });
+
+        return readyPlayers;
+    }
+
     private handlePingError(message: WebSocketMessage) {
-        console.log(message);
+        this.setGameStatus(GameStatus.DISCONNECTED_FROM_SERVER);
+
     }
 
     private handlePong() {
@@ -227,26 +240,28 @@ export class GameService {
     }
 
     private handleInternalError(payload: Payload) {
-        console.log(payload);
         if (payload.message && payload.message == PayloadMessage.NO_AWS_KEYS_LOADED) {
-            this.gameStatus.next(GameStatus.INTERNAL_SERVER_ERROR);
+            this.setGameStatus(GameStatus.AWS_KEYS_NOT_LOADED);
+        } else {
+            console.log(payload);
+            this.setGameStatus(GameStatus.INTERNAL_SERVER_ERROR);
         }
-        this.gameStatus.next(GameStatus.INTERNAL_SERVER_ERROR);
     }
 
     private handlePlayerWord(payload: Payload) {
         const word = payload.word;
         if (this.isPlayerReady.getValue()) {
-            this.gameStatus.next(GameStatus.GAME_IS_STARTING);
+            this.setGameStatus(GameStatus.GAME_IS_STARTING);
             this.gameWord.next(word);
         }
         else {
-            this.gameStatus.next(GameStatus.SOME_GAME_IS_TAKING_PLACE);
+            this.setGameStatus(GameStatus.SOME_GAME_IS_TAKING_PLACE)
         }
     }
 
     private handleWebSocketClose = (event) => {
-        this.gameStatus.next(GameStatus.RECONNECTING_TO_SERVER);
+        console.warn('socket close');
+        this.setGameStatus(GameStatus.RECONNECTING_TO_SERVER);
         this.socketConnectionStatus.next(this._socket.CLOSED);
         setTimeout(this.openWebSocketConnection, this.WEBSOCKET_RECONNECT_TIMEOUT);
     }
@@ -263,6 +278,11 @@ export class GameService {
     //#endregion
 
     //#region Actuators functions
+    setGameStatus(gameStatus: GameStatus) {
+        if (this.gameStatus.getValue() != gameStatus) {
+            this.gameStatus.next(gameStatus);
+        }
+    }
     setPlayerName(value: string) {
         this.playerName.next(value);
         this.validatePlayerName();
@@ -348,10 +368,7 @@ export class GameService {
     }
 
     startGame() {
-        console.log('game start')
         if (this.playerId.getValue() && this.isPlayerAdmin.getValue()) {
-            console.log('game start');
-
             const startGameRequest = {
                 type: MessageType.GAME_START,
                 payload: {
@@ -360,11 +377,9 @@ export class GameService {
             }
             this._socket.send(JSON.stringify(startGameRequest));
         }
-        else
-            console.log('player is not admin')
     }
 
-    restartSocketConnection() {
+    reconnectToSocket() {
         console.warn('restarting connection');
         this._socket.close();
         this.openWebSocketConnection();

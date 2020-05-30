@@ -169,7 +169,6 @@ export class HomePage {
                 break;
             }
             default: {
-                console.log('default');
                 newGameStatus = gameStatus;
                 break;
             }
@@ -227,6 +226,7 @@ export class HomePage {
                 break;
             }
         }
+        // console.log(`icon: ${gameStatusIcon}`);
         return gameStatusIcon;
     }
 
@@ -252,6 +252,7 @@ export class HomePage {
             GameStatus.ALL_SLOTS_ARE_FULL,
             GameStatus.DISCONNECTED_FROM_SERVER,
             GameStatus.SOME_GAME_IS_TAKING_PLACE,
+            GameStatus.AWS_KEYS_NOT_LOADED,
             GameStatus.INTERNAL_SERVER_ERROR
         ].includes(this.gameStatus);
     }
@@ -285,7 +286,7 @@ export class HomePage {
     }
 
     reconnect() {
-        this._gameService.restartSocketConnection();
+        this._gameService.reconnectToSocket();
     }
 
     exitApp() {
