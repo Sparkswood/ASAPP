@@ -95,7 +95,11 @@ export class HomePage {
         this._gameService.setPlayerName(this._playerName);
     }
 
-    constructor(private _gameService: GameService, private _router: Router, private platform: Platform) { }
+    constructor(
+        private _gameService: GameService,
+        private _router: Router,
+        private _platform: Platform
+    ) {}
 
     ngOnInit() {
         this._gameStatus = GameStatus.CONNECTING_TO_SERVER;
@@ -273,11 +277,11 @@ export class HomePage {
     //#endregion
 
     private subscribeToBackButton() {
-        this.platform.backButton.subscribe(() => this.exitApp());
+        this._platform.backButton.subscribe(() => this.exitApp());
     }
 
     private unsubscribeFromBackButton() {
-        this.platform.backButton.unsubscribe();
+        this._platform.backButton.unsubscribe();
     }
 
     startGame() {
