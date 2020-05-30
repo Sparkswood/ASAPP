@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { CameraPreview, CameraPreviewPictureOptions, CameraPreviewOptions, CameraPreviewDimensions } from '@ionic-native/camera-preview/ngx';
+import { CameraPreview, CameraPreviewPictureOptions, CameraPreviewOptions } from '@ionic-native/camera-preview/ngx';
 import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
+import { ToastComponent } from 'src/app/components/toast/toast.component';
+import { cameraStatements } from 'src/app/model/enums/Toast';
 
 @Component({
   selector: 'app-game',
@@ -57,7 +59,8 @@ export class GamePage {
   constructor(
     private _cameraPreview: CameraPreview,
     private _router: Router,
-    private _platform: Platform
+    private _platform: Platform,
+    private _toastComponent: ToastComponent
   ) {
     this.startCamera();
     this.subscribeToBackButton();
@@ -91,8 +94,8 @@ export class GamePage {
       () => {
         this.show();
       },
-      (err) => {
-        // TODO: Throw exception: Camera error
+      () => {
+        this._toastComponent.danger(cameraStatements.CAMERA_ERROR)
       });
   }
 
@@ -115,14 +118,14 @@ export class GamePage {
       this._doShowFabs = true;
       this.hide();
     }, (err) => {
-      // TODO: Throw exception: Taking picture unsuccessful
+      this._toastComponent.danger(cameraStatements.CAMERA_UNSUCCESSFULL_PICTURE)
     });
   }
 
   private savePicture() {
     this._doShowFabs = false;
     this.stopCamera();
-    // TODO: Send to websocket
+    // TODO: Send to websocket, start loading
   }
 
   private discardPicture() {

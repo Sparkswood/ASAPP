@@ -3,6 +3,8 @@ import { WebSocketMessage, Payload, PayloadMessage, MessageType } from '../model
 import { GameStatus } from '../model/enums/GameStatus';
 import { Subject, BehaviorSubject } from 'rxjs';
 import { Player } from '../model/Player';
+import { ToastComponent } from '../components/toast/toast.component';
+import { gameServiceStatements } from '../model/enums/Toast';
 
 @Injectable({
     providedIn: 'root'
@@ -35,7 +37,9 @@ export class GameService {
     isPlayerReady: BehaviorSubject<boolean>;
     isPlayerAdmin: BehaviorSubject<boolean>;
 
-    constructor() {
+    constructor(
+        private _toastComponent: ToastComponent
+    ) {
         this.setInitialValues();
         this.openWebSocketConnection();
         this.startListeningOnSocketConnectionStatus();
@@ -275,11 +279,11 @@ export class GameService {
 
     reportPlayerName() {
         if (!this.isPlayerIdValid.getValue()) {
-            // TODO: Throw exception: invalid player id
+            this._toastComponent.danger(gameServiceStatements.INVALID_ID)
         } else if (!this.isPlayerNameValid.getValue()) {
-            // TODO: Throw exception: invalid player name
+            this._toastComponent.warn(gameServiceStatements.INVALID_PLAYER)
         } else if (!this.isSocketOpened()) {
-            // TODO: Throw exception: socket closed
+            this._toastComponent.warn(gameServiceStatements.SOCKET_CLOSED)
         } else {
             this._socket.send(
                 JSON.stringify({
@@ -295,11 +299,11 @@ export class GameService {
 
     reportPlayerReadyState(value: boolean) {
         if (!this.isPlayerIdValid.getValue()) {
-            // TODO: Throw exception: invalid player id
+            this._toastComponent.danger(gameServiceStatements.INVALID_ID)
         } else if (!this.isPlayerNameValid.getValue()) {
-            // TODO: Throw exception: invalid player name
+            this._toastComponent.warn(gameServiceStatements.INVALID_PLAYER)
         } else if (!this.isSocketOpened()) {
-            // TODO: Throw exception: socket closed
+            this._toastComponent.warn(gameServiceStatements.SOCKET_CLOSED)
         } else if (this.isPlayerReady.getValue() != value) { //to avoid redundant calls (e.g. when ready player call ready state)
             this._socket.send(
                 JSON.stringify({
@@ -315,7 +319,7 @@ export class GameService {
 
     private requestPlayerId() {
         if (!this.isSocketOpened()) {
-            // TODO: Throw exception: socekt closed
+            this._toastComponent.warn(gameServiceStatements.SOCKET_CLOSED)
         } else {
             this._socket.send(
                 JSON.stringify({
@@ -328,7 +332,7 @@ export class GameService {
 
     private checkPlayerId() {
         if (!this.isSocketOpened()) {
-            // TODO: Throw exception: socekt closed
+            this._toastComponent.warn(gameServiceStatements.SOCKET_CLOSED)
         } else {
             this._socket.send(
                 JSON.stringify({
