@@ -1,4 +1,3 @@
-import { Player } from './Player';
 import { RawPlayer } from './RawPlayer';
 
 export interface WebSocketMessage {
