@@ -10,6 +10,8 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { CameraPreview } from '@ionic-native/camera-preview/ngx';
+import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
+import { AlertComponent } from './components/alert/alert.component';
 
 @NgModule({
   declarations: [AppComponent],
@@ -24,7 +26,9 @@ import { CameraPreview } from '@ionic-native/camera-preview/ngx';
     StatusBar,
     SplashScreen,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
-    CameraPreview
+    CameraPreview,
+    AndroidPermissions,
+    AlertComponent
   ],
   bootstrap: [AppComponent]
 })

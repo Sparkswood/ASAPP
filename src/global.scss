@@ -24,3 +24,20 @@
 @import "~@ionic/angular/css/text-alignment.css";
 @import "~@ionic/angular/css/text-transformation.css";
 @import "~@ionic/angular/css/flex-utils.css";
+
+
+
+// #region alert-service
+.alert .alert-wrapper {
+    border-radius: 25px;
+    text-align: justify;
+    .alert-head{
+        text-align: justify;
+    }
+}
+
+.ok-button span {
+    font-weight: bold;
+}
+
+// #endregion alert-service
