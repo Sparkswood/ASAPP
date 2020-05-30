@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CameraPreview, CameraPreviewPictureOptions, CameraPreviewOptions, CameraPreviewDimensions } from '@ionic-native/camera-preview/ngx';
+import { Router } from '@angular/router';
+import { Platform } from '@ionic/angular';
 
 @Component({
   selector: 'app-game',
@@ -8,16 +10,16 @@ import { CameraPreview, CameraPreviewPictureOptions, CameraPreviewOptions, Camer
 })
 export class GamePage {
 
-  picture = '';
-  base64 = '';
+  private _picture: string = '';
+  private _base64: string = '';
 
-  showFabs = false;
+  private _doShowFabs: boolean = false;
 
-  cameraPreviewOpts: CameraPreviewOptions = {
+  private _cameraPreviewOpts: CameraPreviewOptions = {
     x: 0,
-    y: 62,
+    y: 56,
     width: window.innerWidth,
-    height: window.innerHeight - 62,
+    height: window.innerHeight - 56,
     camera: 'rear',
     tapPhoto: true,
     previewDrag: true,
@@ -26,21 +28,66 @@ export class GamePage {
     alpha: 1
   }
 
-  pictureOpts: CameraPreviewPictureOptions = {
+  private _pictureOpts: CameraPreviewPictureOptions = {
     width: 5000,
     height: 5000,
     quality: 90
   }
 
-
-  constructor(
-    private cameraPreview: CameraPreview
-  ) {
-    this.startCamera();
+  get picture() {
+    return this._picture;
   }
 
-  startCamera() {
-    this.cameraPreview.startCamera(this.cameraPreviewOpts).then(
+  get base64() {
+    return this._base64;
+  }
+
+  get doShowFabs() {
+    return this._doShowFabs;
+  }
+
+  get cameraPreviewOpts() {
+    return this._cameraPreviewOpts;
+  }
+
+  get pictureOpts() {
+    return this._pictureOpts;
+  }
+
+  constructor(
+    private _cameraPreview: CameraPreview,
+    private _router: Router,
+    private _platform: Platform
+  ) {
+    this.startCamera();
+    this.subscribeToBackButton();
+  }
+
+  ionViewWillLeave() {
+    this.stopCamera();
+    this.unsubscribeToBackButton();
+  }
+
+  // #region navigation
+  private subscribeToBackButton() {
+    this._platform.backButton.subscribe( () => {
+      this.navigateToHomeScreen();
+    });
+  }
+
+  private unsubscribeToBackButton() {
+    this._platform.backButton.unsubscribe();
+  }
+
+  private navigateToHomeScreen() {
+    this._router.navigate(['/home']);
+  }
+
+  // #endregion
+
+  // #region camera
+  private startCamera() {
+    this._cameraPreview.startCamera(this.cameraPreviewOpts).then(
       () => {
         this.show();
       },
@@ -49,40 +96,46 @@ export class GamePage {
       });
   }
 
-  show() {
-    this.cameraPreview.show();
+  private stopCamera() {
+    this._cameraPreview.stopCamera();
   }
 
-  stopCamera() {
-    this.cameraPreview.stopCamera();
+  private show() {
+    this._cameraPreview.show();
   }
 
-  hide() {
-    this.cameraPreview.hide();
+  private hide() {
+    this._cameraPreview.hide();
   }
 
-  takePicture() {
-    this.cameraPreview.takePicture(this.pictureOpts).then((imageData) => {
-      this.picture = 'data:image/jpeg;base64,' + imageData;
-      this.base64 = imageData;
+  private takePicture() {
+    this._cameraPreview.takePicture(this.pictureOpts).then((imageData) => {
+      this._picture = 'data:image/jpeg;base64,' + imageData;
+      this._base64 = imageData;
+      this._doShowFabs = true;
       this.hide();
-      this.showFabs = true;
     }, (err) => {
       // TODO: Throw exception: Taking picture unsuccessful
     });
   }
 
-  savePicture() {
-    this.showFabs = false;
+  private savePicture() {
+    this._doShowFabs = false;
     this.stopCamera();
     // TODO: Send to websocket
   }
 
-  discardPicture() {
-    this.showFabs = false;
-    this.base64 = '';
-    this.picture = '';
+  private discardPicture() {
+    this._doShowFabs = false;
+    this._base64 = '';
+    this._picture = '';
     this.show();
   }
+
+  private isPictureTaken() {
+    return this._picture !== '';
+  }
+  // #endregion
+  
 
 }

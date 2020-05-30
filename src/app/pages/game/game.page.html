@@ -1,7 +1,7 @@
-<ion-header [translucent]="true" style="z-index: 10000000000000;">
+<ion-header [translucent]="true">
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
-        <ion-back-button defaultHref="/home" icon="chevron-back">
+        <ion-back-button defaultHref="/home" (click)="navigateToHomeScreen()" icon="chevron-back">
         </ion-back-button>
     </ion-buttons>
 
@@ -9,28 +9,26 @@
       Photo ASAPP
     </ion-title>
   </ion-toolbar>
-  <!-- jesli value powinno sie zmieniac jesli ktorys z graczy doda zdjecie i na max przechodzi do wynikow -->
-  <ion-label class="progress-label">Waiting for other players...</ion-label>
-  <ion-progress-bar style="position: absolute;" color="tertiary" value="0.5"></ion-progress-bar>
 </ion-header>
 
 <ion-content [fullscreen]="true" class="custom-ion-content">
   <div class="full-height fx-col fx-align-center fx-justify-center">
 
-    <div *ngIf="picture != ''" class="full-screen">
+    <ion-button class="full-screen" color="contrast" *ngIf="!isPictureTaken() && !doShowFabs" (click)="takePicture()"></ion-button>
+
+    <div *ngIf="isPictureTaken()" class="full-screen">
       <img [src]="picture" class="full-screen">
-      <ion-fab *ngIf="showFabs" vertical="bottom" horizontal="end" slot="fixed">
+      <ion-fab *ngIf="doShowFabs" vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button (click)="savePicture()" color="primaryT">
           <ion-icon name="checkmark"></ion-icon>
         </ion-fab-button>
-        <ion-fab-button (click)="discardPicture()" color="primaryT">
+      </ion-fab>
+      <ion-fab *ngIf="doShowFabs" vertical="bottom" horizontal="start" slot="fixed">
+        <ion-fab-button id="discard" (click)="discardPicture()" color="primaryT">
           <ion-icon name="close"></ion-icon>
         </ion-fab-button>
       </ion-fab>
     </div>
-
-    <ion-button class="full-screen" color="contrast" *ngIf="picture == '' && !showFabs" (click)="takePicture()"></ion-button>
-
 
   </div>
   
