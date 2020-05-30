@@ -1,38 +1,141 @@
 import { Component, OnInit } from '@angular/core';
-import { Plugins, CameraSource, CameraResultType } from '@capacitor/core';
+import { CameraPreview, CameraPreviewPictureOptions, CameraPreviewOptions, CameraPreviewDimensions } from '@ionic-native/camera-preview/ngx';
+import { Router } from '@angular/router';
+import { Platform } from '@ionic/angular';
 
 @Component({
   selector: 'app-game',
   templateUrl: './game.page.html',
   styleUrls: ['./game.page.scss'],
 })
-export class GamePage implements OnInit {
-  
-  image: any;
+export class GamePage {
 
-  constructor() { }
+  private _picture: string = '';
+  private _base64: string = '';
 
-  ngOnInit() {
-    this.takePicture();
+  private _doShowFabs: boolean = false;
+
+  private _cameraPreviewOpts: CameraPreviewOptions = {
+    x: 0,
+    y: 56,
+    width: window.innerWidth,
+    height: window.innerHeight - 56,
+    camera: 'rear',
+    tapPhoto: true,
+    previewDrag: true,
+    toBack: true,
+    tapToFocus: true,
+    alpha: 1
   }
 
-  async takePicture() {
+  private _pictureOpts: CameraPreviewPictureOptions = {
+    width: 5000,
+    height: 5000,
+    quality: 90
+  }
 
-    // plugin runs native camera
-    const capturedImage = await Plugins.Camera.getPhoto({
-      quality: 90,
-      // allow to edit captured photo
-      allowEditing: false,
-      // source- can be also gallery and prompt
-      source: CameraSource.Camera,
-      resultType: CameraResultType.Uri
+  get picture() {
+    return this._picture;
+  }
+
+  get base64() {
+    return this._base64;
+  }
+
+  get doShowFabs() {
+    return this._doShowFabs;
+  }
+
+  get cameraPreviewOpts() {
+    return this._cameraPreviewOpts;
+  }
+
+  get pictureOpts() {
+    return this._pictureOpts;
+  }
+
+  constructor(
+    private _cameraPreview: CameraPreview,
+    private _router: Router,
+    private _platform: Platform
+  ) {
+    this.startCamera();
+    this.subscribeToBackButton();
+  }
+
+  ionViewWillLeave() {
+    this.stopCamera();
+    this.unsubscribeToBackButton();
+  }
+
+  // #region navigation
+  private subscribeToBackButton() {
+    this._platform.backButton.subscribe( () => {
+      this.navigateToHomeScreen();
     });
-
-    // webPath to render photo on app page
-    this.image = capturedImage.webPath;
-
-    // base64 format to send to websocket
-    console.log(capturedImage.base64String);
   }
+
+  private unsubscribeToBackButton() {
+    this._platform.backButton.unsubscribe();
+  }
+
+  private navigateToHomeScreen() {
+    this._router.navigate(['/home']);
+  }
+
+  // #endregion
+
+  // #region camera
+  private startCamera() {
+    this._cameraPreview.startCamera(this.cameraPreviewOpts).then(
+      () => {
+        this.show();
+      },
+      (err) => {
+        // TODO: Throw exception: Camera error
+      });
+  }
+
+  private stopCamera() {
+    this._cameraPreview.stopCamera();
+  }
+
+  private show() {
+    this._cameraPreview.show();
+  }
+
+  private hide() {
+    this._cameraPreview.hide();
+  }
+
+  private takePicture() {
+    this._cameraPreview.takePicture(this.pictureOpts).then((imageData) => {
+      this._picture = 'data:image/jpeg;base64,' + imageData;
+      this._base64 = imageData;
+      this._doShowFabs = true;
+      this.hide();
+    }, (err) => {
+      // TODO: Throw exception: Taking picture unsuccessful
+    });
+  }
+
+  private savePicture() {
+    this._doShowFabs = false;
+    this.stopCamera();
+    // TODO: Send to websocket
+  }
+
+  private discardPicture() {
+    this._doShowFabs = false;
+    this._base64 = '';
+    this._picture = '';
+    this.show();
+  }
+
+  private isPictureTaken() {
+    return this._picture !== '';
+  }
+  // #endregion
+  
 
 }
