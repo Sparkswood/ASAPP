@@ -22,22 +22,22 @@ export class AlertComponent {
     });
 
     this._alert = await this._alertController.create({
-      cssClass: '',
+      cssClass: 'alert',
       header: permissionRequiredAlert.HEADER,
+      subHeader: permissionRequiredAlert.SUBHEADER,
       message: permissionRequiredAlert.MESSAGE,
       buttons: [
         {
           text: permissionRequiredAlert.CANCEL_BUTTON_TEXT,
           role: 'CANCEL',
-          cssClass: '',
           handler: () => {
             resolveFunction(false);
             navigator['app'].exitApp();
           }
         }, {
           text: permissionRequiredAlert.OK_BUTTON_TEXT,
+          cssClass: 'ok-button',
           role: 'OK',
-          cssClass: '',
           handler: () => resolveFunction(true)
         }
       ]
