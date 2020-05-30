@@ -36,6 +36,9 @@ export class GameService {
     isPlayerReady: BehaviorSubject<boolean>;
     isPlayerAdmin: BehaviorSubject<boolean>;
 
+    // TODO: delete - temporary
+    lastTimestamp: number;
+
     constructor() {
         this.setInitialValues();
         this.openWebSocketConnection();
@@ -125,7 +128,7 @@ export class GameService {
         else if (messageType === MessageType.PLAYER_READY_SUCCES) this.handlePlayerReadySuccess(message.payload);
         else if (messageType === MessageType.PLAYER_READY_ERROR) this.handlePlayerReadyError(message.payload);
         else if (messageType === MessageType.PLAYERS_INFORMATION) this.handlePlayersInformation(message.payload);
-        else if (messageType === MessageType.PLAYER_PING_ERROR) this.handlePingError(message);
+        else if (messageType === MessageType.PLAYER_PING_ERROR) this.handlePingError();
         else if (messageType === MessageType.PLAYER_PONG) this.handlePong();
         else if (messageType === MessageType.GAME_START_SUCCESS) this.handleGameStartSuccess(message);
         else if (messageType === MessageType.GAME_START_ERROR) this.handleGameStartError(message);
@@ -222,7 +225,7 @@ export class GameService {
         return readyPlayers;
     }
 
-    private handlePingError(message: WebSocketMessage) {
+    private handlePingError() {
         this.setGameStatus(GameStatus.DISCONNECTED_FROM_SERVER);
 
     }
@@ -259,7 +262,7 @@ export class GameService {
         }
     }
 
-    private handleWebSocketClose = (event) => {
+    private handleWebSocketClose = () => {
         console.warn('socket close');
         this.setGameStatus(GameStatus.RECONNECTING_TO_SERVER);
         this.socketConnectionStatus.next(this._socket.CLOSED);
@@ -382,7 +385,6 @@ export class GameService {
     reconnectToSocket() {
         console.warn('restarting connection');
         this._socket.close();
-        this.openWebSocketConnection();
     }
     //#endregion
 }
