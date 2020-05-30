@@ -31,7 +31,7 @@
 
             <div class="game-status fx-col fx-justify-center fx-align-center">
                 <ion-icon name="{{ gameStatusIcon }}" color="primary"></ion-icon>
-                <span>{{ gameStatus.toString() }}</span>
+                <span>{{ getGameStatusString() }}</span>
             </div>
 
             <div class="fx-row fx-justify-center" *ngIf="isPlayerAdmin">

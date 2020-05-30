@@ -112,7 +112,7 @@ export class HomePage {
         })
 
         this._gameService.gameStatus.subscribe((gameStatus: GameStatus) => {
-            this._gameStatus = this.getGameStatusString(gameStatus);
+            this._gameStatus = gameStatus;
             this._gameStatusIcon = this.getCurrentGameStatusIconName(gameStatus);
 
             if (this._gameStatus == GameStatus.GAME_IS_STARTING) {
@@ -160,20 +160,19 @@ export class HomePage {
     //#endregion
 
     //#region Getters functions
-    private getGameStatusString(gameStatus: GameStatus) {
-        let newGameStatus;
+    getGameStatusString(): string {
+        let newGameStatus: string;
 
-        switch (gameStatus) {
+        switch (this._gameStatus) {
             case GameStatus.WAITING_FOR_ADMIN_TO_START_THE_GAME: {
                 newGameStatus = `Waiting for ${this.isPlayerAdmin ? 'you' : 'admin'} to start the game`;
                 break;
             }
             default: {
-                newGameStatus = gameStatus;
+                newGameStatus = this._gameStatus;
                 break;
             }
         }
-
         return newGameStatus;
     }
 
@@ -222,7 +221,7 @@ export class HomePage {
                 break;
             }
             case GameStatus.AWS_KEYS_NOT_LOADED: {
-                gameStatusIcon = 'close-circle';
+                gameStatusIcon = 'logo-amazon';
                 break;
             }
         }
@@ -247,7 +246,7 @@ export class HomePage {
     //#endregion
 
     //#region Boolean functions
-    canRestartServer() {
+    canRestartServer(): boolean {
         return [
             GameStatus.ALL_SLOTS_ARE_FULL,
             GameStatus.DISCONNECTED_FROM_SERVER,

@@ -4,21 +4,23 @@ import { GameStatus } from '../model/enums/GameStatus';
 import { Subject, BehaviorSubject } from 'rxjs';
 import { Player } from '../model/Player';
 import { RawPlayer } from '../model/RawPlayer';
+import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
 
 @Injectable({
     providedIn: 'root'
 })
 export class GameService {
+    static readonly MAX_FAILED_CONNEECTION_ATTEMPTS = 10;
     private readonly MAX_NUMBER_OF_PLAYERS = 4;
     private readonly REQUIRED_NUMBER_OF_PLAYERS = 2;
     private readonly WEBSOCKET_RECONNECT_TIMEOUT = 1000;
     private readonly WEBSOCKET_PING_INTERVAL = 5000;
     private readonly WEBSOCKET_STATUS_CHECK_INTERVAL = 5000;
-    private readonly WEBSOCKET_URL = 'wss://fast-photo.herokuapp.com/';
+    private readonly WEBSOCKET_URL = 'ws://fast-photo.herokuapp.com/';
 
     // WebSocket
     private _socket: WebSocket;
-    socketConnectionStatus = new Subject<number>();
+    socketConnectionStatus: Subject<number>;
 
     // Game
     numberOfConnectedPlayers: BehaviorSubject<number>;
@@ -47,6 +49,10 @@ export class GameService {
 
     //#region Initializers functions
     private setInitialValues() {
+        // Socket
+        this.socketConnectionStatus = new Subject<number>();
+
+        // Game
         this.numberOfConnectedPlayers = new BehaviorSubject<number>(0);
         this.numberOfReadyPlayers = new BehaviorSubject<number>(0);
         this.gameStatus = new BehaviorSubject<GameStatus>(GameStatus.CONNECTING_TO_SERVER);
@@ -54,7 +60,7 @@ export class GameService {
         this.numberOfFreeSlots = new BehaviorSubject<number>(this.MAX_NUMBER_OF_PLAYERS);
         this.canGameBeStarted = new BehaviorSubject<boolean>(false);
 
-        // Current player
+        // Player
         this.playerName = new BehaviorSubject<string>(null);
         this.isPlayerNameValid = new BehaviorSubject<boolean>(false);
         this.playerId = new BehaviorSubject<string>(null);
@@ -168,7 +174,15 @@ export class GameService {
             this.isPlayerReady.next(readyState);
         }
 
-        this.setGameStatus(this.isPlayerReady.getValue() ? GameStatus.WAITING_FOR_OTHER_PLAYERS : GameStatus.WAITING_FOR_READY_STATUS);
+        if (this.isPlayerReady) {
+            if (this.canGameBeStarted.getValue()) {
+                this.setGameStatus(GameStatus.WAITING_FOR_ADMIN_TO_START_THE_GAME);
+            }
+            this.setGameStatus(GameStatus.WAITING_FOR_OTHER_PLAYERS);
+        }
+        else {
+            this.setGameStatus(GameStatus.WAITING_FOR_READY_STATUS);
+        }
     }
 
     private handlePlayerReadyError(payload: Payload) {
@@ -187,15 +201,14 @@ export class GameService {
             this.numberOfReadyPlayers.next(numberOfReadyPlayers);
             this.numberOfFreeSlots.next(freeSlots);
 
-            if (numberOfReadyPlayers >= this.REQUIRED_NUMBER_OF_PLAYERS) {
-                this.canGameBeStarted.next(true);
+            if (this.numberOfReadyPlayers.getValue() >= this.REQUIRED_NUMBER_OF_PLAYERS) {
                 if (this.isPlayerReady.getValue()) {
+                    this.canGameBeStarted.next(true);
                     this.setGameStatus(GameStatus.WAITING_FOR_ADMIN_TO_START_THE_GAME)
                 }
             }
             else {
                 this.canGameBeStarted.next(false);
-
                 if (this.isPlayerReady.getValue())
                     this.setGameStatus(GameStatus.WAITING_FOR_OTHER_PLAYERS);
                 else
