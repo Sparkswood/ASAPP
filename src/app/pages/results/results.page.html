@@ -1,0 +1,57 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+        <ion-back-button defaultHref="/home" (click)="navigateToHomeScreen()" icon="chevron-back">
+        </ion-back-button>
+    </ion-buttons>
+
+    <ion-title>
+      Results
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+<div class=" full-height fx-col fx-justify-center">
+  <ion-label class="result">
+    <h1><b>{{resultTitle}}</b></h1>
+    <h2>{{resultDescription}}</h2>
+  </ion-label>
+  <ion-card>
+    <ion-card-header class="fx-col fx-align-center fx-justify-center">
+      <ion-card-title>
+        Scoreboard
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item lines="none">
+        <ion-icon slot="start" color="warning" name="trophy"></ion-icon>
+        <ion-label class="player">Player 1</ion-label>
+        <ion-note slot="end">1.5 s</ion-note>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-icon slot="start" color="medium" name="trophy"></ion-icon>
+        <ion-label class="player">Player 2</ion-label>
+        <ion-note slot="end">6 s</ion-note>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-icon slot="start" color="success" name="medal"></ion-icon>
+        <ion-label class="player">Player 3</ion-label>
+        <ion-note slot="end">10 s</ion-note>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+  
+  <div class="fx-col fx-align-center fx-justify-center">
+    <ion-button class="btn" (click)="navigateToHomeScreen()">
+      <ion-icon slot="start" name="game-controller"></ion-icon>
+      <ion-label>Play again</ion-label>
+    </ion-button>
+  
+    <ion-button fill="outline" class="btn" (click)="exitApp()">
+      <ion-icon slot="start" name="log-out"></ion-icon>
+      <ion-label>Exit game</ion-label>
+    </ion-button>
+  </div>
+</div>
+</ion-content>
