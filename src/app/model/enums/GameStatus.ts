@@ -10,5 +10,6 @@ export enum GameStatus {
     DISCONNECTED_FROM_SERVER = 'Disconnected from server',
     RECONNECTING_TO_SERVER = 'Reconnecting to server',
     INTERNAL_SERVER_ERROR = 'Internal server error',
-    AWS_KEYS_NOT_LOADED = 'AWS keys not loaded'
+    AWS_KEYS_NOT_LOADED = 'AWS keys not loaded',
+    GAME_OVER = 'game_over'
 }

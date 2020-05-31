@@ -9,18 +9,17 @@ import { LoadingController } from '@ionic/angular';
 export class LoadingComponent {
 
   private _loading: HTMLIonLoadingElement;
-  private _playersToWait: string = '1 player';
 
 
   constructor(
     private _loadingController: LoadingController
   ) { }
 
-  async presentLoading() {
+  async presentLoading(message) {
     this._loading = await this._loadingController.create({
       cssClass: 'loading',
       spinner: 'circular',
-      message: `Waiting for ${this._playersToWait} ...`
+      message: message
     });
     await this._loading.present();
   }

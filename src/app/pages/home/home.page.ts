@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { GameStatus } from '../../model/enums/GameStatus';
-import { GameService, UIMessage, UIMessageType } from '../../services/game.service';
+import { GameService, UIMessage } from '../../services/game.service';
 import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
 import { ToastComponent } from 'src/app/components/toast/toast.component';
@@ -114,6 +114,10 @@ export class HomePage {
         this.subscribeToBackButton();
     }
 
+    ionViewWillLeave() {
+        // this.unsubscribeFromBackButton();
+    }
+
     //#region Initializers functions
     private subscribeToService() {
         this._gameService.socketConnectionStatus.subscribe(socketStatus => {
@@ -125,8 +129,8 @@ export class HomePage {
             this._gameStatusIcon = this.getCurrentGameStatusIconName(gameStatus);
 
             if (this._gameStatus == GameStatus.GAME_IS_STARTING) {
-                this.unsubscribeFromBackButton();
                 this.navigateToGameScreen();
+                this._toastComponent.info('go to game');
             }
         })
 
@@ -168,7 +172,7 @@ export class HomePage {
 
         this._gameService.uIMessage.subscribe((message: UIMessage) => {
             if (message != null) {
-                this.showToast(message);
+                this._toastComponent.showToast(message);
             }
         });
     }
@@ -280,27 +284,6 @@ export class HomePage {
 
     reportNotReadyState() {
         this._gameService.reportPlayerReadyState(false);
-    }
-
-    private showToast(message: UIMessage) {
-        switch (message.type) {
-            case UIMessageType.INFO: {
-                this._toastComponent.info(message.content)
-                break;
-            }
-            case UIMessageType.SUCCESS: {
-                this._toastComponent.success(message.content)
-                break;
-            }
-            case UIMessageType.WARN: {
-                this._toastComponent.warn(message.content)
-                break;
-            }
-            case UIMessageType.DANGER: {
-                this._toastComponent.danger(message.content)
-                break;
-            }
-        }
     }
 
     private navigateToGameScreen() {

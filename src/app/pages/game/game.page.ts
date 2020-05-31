@@ -1,10 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component} from '@angular/core';
 import { CameraPreview, CameraPreviewPictureOptions, CameraPreviewOptions } from '@ionic-native/camera-preview/ngx';
 import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
 import { ToastComponent } from 'src/app/components/toast/toast.component';
 import { cameraStatements } from 'src/app/model/enums/Toast';
 import { LoadingComponent } from 'src/app/components/loading/loading.component';
+import { GameService, UIMessage } from 'src/app/services/game.service';
+import { GameStatus } from 'src/app/model/enums/GameStatus';
+import { Payload } from 'src/app/model/WebSocketMessenger';
 
 @Component({
   selector: 'app-game',
@@ -15,6 +18,10 @@ export class GamePage {
 
   private _picture: string = '';
   private _base64: string = '';
+
+  private _gameStatus: GameStatus;
+  private _gameWord: string = '';
+  private _playerAnswerState: Date = new Date();
 
   private _doShowFabs: boolean = false;
 
@@ -37,23 +44,35 @@ export class GamePage {
     quality: 90
   }
 
-  get picture() {
+  get picture(): string {
     return this._picture;
   }
 
-  get base64() {
+  get base64(): string {
     return this._base64;
   }
 
-  get doShowFabs() {
+  get gameStatus(): GameStatus {
+    return this._gameStatus;
+  } 
+
+  get gameWord(): string {
+    return this._gameWord;
+  }
+
+  get playerAnswerState(): Date {
+    return this._playerAnswerState;
+  }
+
+  get doShowFabs(): boolean {
     return this._doShowFabs;
   }
 
-  get cameraPreviewOpts() {
+  get cameraPreviewOpts(): CameraPreviewOptions {
     return this._cameraPreviewOpts;
   }
 
-  get pictureOpts() {
+  get pictureOpts(): CameraPreviewPictureOptions {
     return this._pictureOpts;
   }
 
@@ -62,16 +81,50 @@ export class GamePage {
     private _router: Router,
     private _platform: Platform,
     private _toastComponent: ToastComponent,
-    private _loadingComponent: LoadingComponent
+    private _loadingComponent: LoadingComponent,
+    private _gameService: GameService
   ) {
     this.startCamera();
     this.subscribeToBackButton();
+    this.subscribeToService();
   }
 
   ionViewWillLeave() {
     this.stopCamera();
     this.unsubscribeToBackButton();
   }
+
+  // #region service
+
+  private subscribeToService() {
+
+    this._gameService.gameStatus.subscribe((gameStatus: GameStatus) => {
+        this._gameStatus = gameStatus;
+        if (this._gameStatus === GameStatus.GAME_OVER) {
+          this._loadingComponent.dismissLoading();
+          // this.navigateToResultsScreen();
+        }
+    })
+
+    this._gameService.gameWord.subscribe(gameWord => {
+      this._gameWord = gameWord;
+    })
+
+    this._gameService.playerAnswerState.subscribe(answerState => {
+      if (answerState > this._playerAnswerState) {
+        this.discardPicture();
+        this._loadingComponent.dismissLoading();
+      }
+      this._playerAnswerState = answerState;
+    })
+
+    this._gameService.uIMessage.subscribe((message: UIMessage) => {
+        if (message != null) {
+            this._toastComponent.showToast(message);
+        }
+    });
+}
+  // #endregion
 
   // #region navigation
   private subscribeToBackButton() {
@@ -86,6 +139,10 @@ export class GamePage {
 
   private navigateToHomeScreen() {
     this._router.navigate(['/home']);
+  }
+
+  private navigateToResultsScreen() {
+    this._router.navigate(['/results']);
   }
 
   // #endregion
@@ -127,9 +184,9 @@ export class GamePage {
 
   private savePicture() {
     this._doShowFabs = false;
-    this.stopCamera();
-    this._loadingComponent.presentLoading();
-    // TODO: Send to websocket, start loading
+    this._gameService.sendPhoto(this.base64);
+    this._playerAnswerState = new Date();
+    this._loadingComponent.presentLoading(`Waiting for results ...`);
   }
 
   private discardPicture() {

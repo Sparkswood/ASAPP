@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { WebSocketMessage, Payload, PayloadMessage, MessageType } from '../model/WebSocketMessenger';
 import { GameStatus } from '../model/enums/GameStatus';
-import { Subject, BehaviorSubject } from 'rxjs';
+import { Subject, BehaviorSubject, Timestamp } from 'rxjs';
 import { Player } from '../model/Player';
-import { ToastComponent } from '../components/toast/toast.component';
 import { gameServiceStatements } from '../model/enums/Toast';
 import { RawPlayer } from '../model/RawPlayer';
 
@@ -41,6 +40,9 @@ export class GameService {
     isPlayerReady: BehaviorSubject<boolean>;
     isPlayerAdmin: BehaviorSubject<boolean>;
 
+    playerAnswerState: BehaviorSubject<Date>; // date of last wrong answer
+    winner: BehaviorSubject<[string, boolean]>;
+
     constructor() {
         this.setInitialValues();
         this.openWebSocketConnection();
@@ -68,6 +70,8 @@ export class GameService {
         this.isPlayerIdValid = new BehaviorSubject<boolean>(false);
         this.isPlayerReady = new BehaviorSubject<boolean>(false);
         this.isPlayerAdmin = new BehaviorSubject<boolean>(false);
+        this.playerAnswerState = new BehaviorSubject<Date>(new Date()); // date of last wrong answer
+        this.winner = new BehaviorSubject<[string, boolean]>(['', false]);
     }
 
     private openWebSocketConnection = () => {
@@ -141,6 +145,8 @@ export class GameService {
         else if (messageType === MessageType.GAME_START_ERROR) this.handleGameStartError(message);
         else if (messageType === MessageType.ERROR_INTERNAL) this.handleInternalError(message.payload);
         else if (messageType === MessageType.PLAYER_WORD) this.handlePlayerWord(message.payload);
+        else if (messageType === MessageType.PLAYER_ANSWER_WRONG) this.handlePlayerWrongAnswer();
+        else if (messageType === MessageType.GAME_OVER) this.handleGameOver(message.payload);
         else console.log(`   message type: ${messageType}`);
     }
 
@@ -426,6 +432,33 @@ export class GameService {
         this._socket.close();
     }
     //#endregion
+
+    // #region Game in progress
+
+    sendPhoto(photoBase64: string) {
+        if (this.playerId.getValue()) {
+            const sendPhotoRequest = {
+                type: MessageType.PLAYER_ANSWER,
+                payload: {
+                    answer: photoBase64,
+                    id: this.playerId.getValue()
+                }
+            }
+            this._socket.send(JSON.stringify(sendPhotoRequest));
+        }
+    }
+
+    handlePlayerWrongAnswer() {
+        this.playerAnswerState.next(new Date());
+    }
+
+    handleGameOver(payload: Payload) {
+        this.playerAnswerState.next(null);
+        this.setGameStatus(GameStatus.GAME_OVER);
+        this.winner.next([payload.name, this.playerId.value === payload.id]);
+    }
+
+    // #endregion
 }
 
 export interface UIMessage {

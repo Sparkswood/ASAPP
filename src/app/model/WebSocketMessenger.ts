@@ -25,6 +25,7 @@ export enum MessageType {
     GAME_START = 'game_start',
     GAME_START_SUCCESS = 'game_start-success',
     GAME_START_ERROR = 'game_start-error',
+    GAME_OVER = 'game_over',
     PLAYER_READY = 'player_ready',
     PLAYER_NAME = 'player_name',
     PLAYER_PING = 'player_ping',
@@ -33,7 +34,9 @@ export enum MessageType {
     PLAYER_READY_SUCCES = 'player_ready-success',
     PLAYER_READY_ERROR = 'player_ready-error',
     PLAYER_WORD = 'player_word',
-    PLAYERS_INFORMATION = 'players_information'
+    PLAYERS_INFORMATION = 'players_information',
+    PLAYER_ANSWER = 'player_answer',
+    PLAYER_ANSWER_WRONG = 'player_answer_wrong'
 }
 
 export enum PayloadMessage {

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ToastController } from '@ionic/angular';
 import { toastStates } from 'src/app/model/enums/Toast';
+import { UIMessage, UIMessageType } from 'src/app/services/game.service';
 
 @Component({
   selector: 'app-toast',
@@ -37,5 +38,26 @@ export class ToastComponent {
   danger(message) {
     this.presentToast(message, toastStates.DANGER);
   }
+
+  showToast(message: UIMessage) {
+    switch (message.type) {
+        case UIMessageType.INFO: {
+            this.info(message.content)
+            break;
+        }
+        case UIMessageType.SUCCESS: {
+            this.success(message.content)
+            break;
+        }
+        case UIMessageType.WARN: {
+            this.warn(message.content)
+            break;
+        }
+        case UIMessageType.DANGER: {
+            this.danger(message.content)
+            break;
+        }
+    }
+}
 
 }
