@@ -21,11 +21,13 @@
                 </ion-input>
             </div>
             <div class="fx-col fx-align-center fx-justify-center">
-                <ion-button style="--border-radius: 100px" (click)="reportReadyState()" [disabled]="!isPlayerNameValid">
+                <ion-button style="--border-radius: 100px" (click)="reportReadyState()"
+                    [disabled]="!(isPlayerNameValid && canGameBeJoinedTo())">
                     Ready
                 </ion-button>
 
-                <ion-button fill="outline" style="--border-radius: 100px" (click)="reportNotReadyState()">Not ready
+                <ion-button fill="outline" style="--border-radius: 100px" (click)="reportNotReadyState()"
+                    [disabled]="!canGameBeJoinedTo()">Not ready
                 </ion-button>
             </div>
 
@@ -41,7 +43,7 @@
                 </ion-button>
             </div>
 
-            <div *ngIf="canRestartServer()" class="fx-row fx-justify-center">
+            <div *ngIf="!canGameBeJoinedTo()" class="fx-row fx-justify-center">
                 <ion-button (click)="reconnect()" style="--border-radius: 100px" class="btn--reload">
                     <ion-icon slot="start" name="reload"></ion-icon> Reload
                 </ion-button>

@@ -24,12 +24,14 @@ export class GameService {
     socketConnectionStatus: Subject<number>;
 
     // Game
+    uIMessage: BehaviorSubject<UIMessage>;
     numberOfConnectedPlayers: BehaviorSubject<number>;
     numberOfReadyPlayers: BehaviorSubject<number>;
     gameStatus: BehaviorSubject<GameStatus>;
     gameWord: BehaviorSubject<string>;
     numberOfFreeSlots: BehaviorSubject<number>;
     canGameBeStarted: BehaviorSubject<boolean>;
+    canGameBeJoinedTo: BehaviorSubject<boolean>;
 
     // Player
     playerName: BehaviorSubject<string>;
@@ -39,7 +41,7 @@ export class GameService {
     isPlayerReady: BehaviorSubject<boolean>;
     isPlayerAdmin: BehaviorSubject<boolean>;
 
-    constructor(private _toastComponent: ToastComponent) {
+    constructor() {
         this.setInitialValues();
         this.openWebSocketConnection();
         this.startListeningOnSocketConnectionStatus();
@@ -51,6 +53,7 @@ export class GameService {
         this.socketConnectionStatus = new Subject<number>();
 
         // Game
+        this.uIMessage = new BehaviorSubject<UIMessage>(null);
         this.numberOfConnectedPlayers = new BehaviorSubject<number>(0);
         this.numberOfReadyPlayers = new BehaviorSubject<number>(0);
         this.gameStatus = new BehaviorSubject<GameStatus>(GameStatus.CONNECTING_TO_SERVER);
@@ -309,12 +312,22 @@ export class GameService {
 
     reportPlayerName() {
         if (!this.isPlayerIdValid.getValue()) {
-            this._toastComponent.danger(gameServiceStatements.INVALID_ID)
+            this.uIMessage.next({
+                type: UIMessageType.INFO,
+                content: gameServiceStatements.INVALID_ID
+            });
         } else if (!this.isPlayerNameValid.getValue()) {
-            this._toastComponent.warn(gameServiceStatements.INVALID_PLAYER)
+            this.uIMessage.next({
+                type: UIMessageType.INFO,
+                content: gameServiceStatements.INVALID_PLAYER
+            });
         } else if (!this.isSocketOpened()) {
-            this._toastComponent.warn(gameServiceStatements.SOCKET_CLOSED)
+            this.uIMessage.next({
+                type: UIMessageType.WARN,
+                content: gameServiceStatements.SOCKET_CLOSED
+            });
         } else {
+
             this._socket.send(
                 JSON.stringify({
                     type: MessageType.PLAYER_NAME,
@@ -329,11 +342,20 @@ export class GameService {
 
     reportPlayerReadyState(value: boolean) {
         if (!this.isPlayerIdValid.getValue()) {
-            this._toastComponent.danger(gameServiceStatements.INVALID_ID)
+            this.uIMessage.next({
+                type: UIMessageType.INFO,
+                content: gameServiceStatements.INVALID_ID
+            });
         } else if (!this.isPlayerNameValid.getValue()) {
-            this._toastComponent.warn(gameServiceStatements.INVALID_PLAYER)
+            this.uIMessage.next({
+                type: UIMessageType.INFO,
+                content: gameServiceStatements.INVALID_PLAYER
+            });
         } else if (!this.isSocketOpened()) {
-            this._toastComponent.warn(gameServiceStatements.SOCKET_CLOSED)
+            this.uIMessage.next({
+                type: UIMessageType.WARN,
+                content: gameServiceStatements.SOCKET_CLOSED
+            });
         } else if (this.isPlayerReady.getValue() != value) { //to avoid redundant calls (e.g. when ready player call ready state)
             this._socket.send(
                 JSON.stringify({
@@ -349,7 +371,10 @@ export class GameService {
 
     private requestPlayerId() {
         if (!this.isSocketOpened()) {
-            this._toastComponent.warn(gameServiceStatements.SOCKET_CLOSED)
+            this.uIMessage.next({
+                type: UIMessageType.WARN,
+                content: gameServiceStatements.SOCKET_CLOSED
+            });
         } else {
             this._socket.send(
                 JSON.stringify({
@@ -362,7 +387,10 @@ export class GameService {
 
     private checkPlayerId() {
         if (!this.isSocketOpened()) {
-            this._toastComponent.warn(gameServiceStatements.SOCKET_CLOSED)
+            this.uIMessage.next({
+                type: UIMessageType.WARN,
+                content: gameServiceStatements.SOCKET_CLOSED
+            });
         } else {
             this._socket.send(
                 JSON.stringify({
@@ -398,4 +426,16 @@ export class GameService {
         this._socket.close();
     }
     //#endregion
+}
+
+export interface UIMessage {
+    type: UIMessageType;
+    content: string;
+}
+
+export enum UIMessageType {
+    INFO,
+    SUCCESS,
+    WARN,
+    DANGER
 }

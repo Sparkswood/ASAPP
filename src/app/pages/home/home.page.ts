@@ -1,9 +1,8 @@
 import { Component } from '@angular/core';
 import { GameStatus } from '../../model/enums/GameStatus';
-import { GameService } from '../../services/game.service';
+import { GameService, UIMessage, UIMessageType } from '../../services/game.service';
 import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
-import { Player } from 'src/app/model/Player';
 import { ToastComponent } from 'src/app/components/toast/toast.component';
 
 @Component({
@@ -71,10 +70,6 @@ export class HomePage {
     }
 
     // Player
-    get playerId() {
-        return this._playerId;
-    }
-
     get isPlayerReady(): boolean {
         return this._isPlayerReady;
     }
@@ -83,12 +78,20 @@ export class HomePage {
         return this._isPlayerAdmin;
     }
 
-    get isPlayerNameValid(): boolean {
-        return this._isPlayerNameValid;
+    get playerId() {
+        return this._playerId;
+    }
+
+    get isPlayerIdValid(): boolean {
+        return this._isPlayerIdValid;
     }
 
     get playerName(): string {
         return this._playerName;
+    }
+
+    get isPlayerNameValid(): boolean {
+        return this._isPlayerNameValid;
     }
 
     set playerName(value: string) {
@@ -101,7 +104,7 @@ export class HomePage {
         private _router: Router,
         private _platform: Platform,
         private _toastComponent: ToastComponent
-    ) {}
+    ) { }
 
     ngOnInit() {
         this._gameStatus = GameStatus.CONNECTING_TO_SERVER;
@@ -162,6 +165,12 @@ export class HomePage {
         this._gameService.canGameBeStarted.subscribe(canGameBeStarted => {
             this._canGameBeStarted = canGameBeStarted;
         })
+
+        this._gameService.uIMessage.subscribe((message: UIMessage) => {
+            if (message != null) {
+                this.showToast(message);
+            }
+        });
     }
     //#endregion
 
@@ -252,8 +261,8 @@ export class HomePage {
     //#endregion
 
     //#region Boolean functions
-    canRestartServer(): boolean {
-        return [
+    canGameBeJoinedTo(): boolean {
+        return ![
             GameStatus.ALL_SLOTS_ARE_FULL,
             GameStatus.DISCONNECTED_FROM_SERVER,
             GameStatus.SOME_GAME_IS_TAKING_PLACE,
@@ -273,10 +282,30 @@ export class HomePage {
         this._gameService.reportPlayerReadyState(false);
     }
 
+    private showToast(message: UIMessage) {
+        switch (message.type) {
+            case UIMessageType.INFO: {
+                this._toastComponent.info(message.content)
+                break;
+            }
+            case UIMessageType.SUCCESS: {
+                this._toastComponent.success(message.content)
+                break;
+            }
+            case UIMessageType.WARN: {
+                this._toastComponent.warn(message.content)
+                break;
+            }
+            case UIMessageType.DANGER: {
+                this._toastComponent.danger(message.content)
+                break;
+            }
+        }
+    }
+
     private navigateToGameScreen() {
         this._router.navigate(['/game']);
     }
-    //#endregion
 
     private subscribeToBackButton() {
         this._platform.backButton.subscribe(() => this.exitApp());
@@ -297,4 +326,5 @@ export class HomePage {
     exitApp() {
         navigator['app'].exitApp();
     }
+    //#endregion
 }
