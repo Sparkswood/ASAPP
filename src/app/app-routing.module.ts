@@ -8,7 +8,7 @@ const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: 'results',
+    redirectTo: 'game',
     pathMatch: 'full'
   },
   {

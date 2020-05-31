@@ -29,7 +29,7 @@
 
 // #region alert-service
 .alert .alert-wrapper {
-    border-radius: 25px;
+    border-radius: 30px;
     text-align: justify;
     .alert-head{
         text-align: justify;
@@ -41,3 +41,13 @@
 }
 
 // #endregion alert-service
+
+// #region loading-service
+.loading .loading-wrapper{
+    border-radius: 30px;
+    font-style: italic;
+    ion-spinner {
+        color: var(--ion-color-primary);
+    }
+}
+// #endregion

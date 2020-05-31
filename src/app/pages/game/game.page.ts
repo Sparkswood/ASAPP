@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
 import { ToastComponent } from 'src/app/components/toast/toast.component';
 import { cameraStatements } from 'src/app/model/enums/Toast';
+import { LoadingComponent } from 'src/app/components/loading/loading.component';
 
 @Component({
   selector: 'app-game',
@@ -60,7 +61,8 @@ export class GamePage {
     private _cameraPreview: CameraPreview,
     private _router: Router,
     private _platform: Platform,
-    private _toastComponent: ToastComponent
+    private _toastComponent: ToastComponent,
+    private _loadingComponent: LoadingComponent
   ) {
     this.startCamera();
     this.subscribeToBackButton();
@@ -96,6 +98,7 @@ export class GamePage {
       },
       () => {
         this._toastComponent.danger(cameraStatements.CAMERA_ERROR)
+        this.navigateToHomeScreen();
       });
   }
 
@@ -125,6 +128,7 @@ export class GamePage {
   private savePicture() {
     this._doShowFabs = false;
     this.stopCamera();
+    this._loadingComponent.presentLoading();
     // TODO: Send to websocket, start loading
   }
 
