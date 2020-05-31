@@ -1,0 +1,36 @@
+@import '../../../theme/variables.scss';
+@import '../../../theme/dimensions.scss';
+@import '../../../theme/common.scss';
+@import '../../../theme/flex.scss';
+
+ion-card {
+    margin: 40px 0;
+    border-radius: 30px;
+    border: 2px solid var(--ion-color-primary);
+}
+
+ion-card-title {
+    font-weight: bolder;
+    font-style: italic;
+}
+
+ion-note {
+    font-size: 16px;
+    font-weight: bolder;
+    font-style: italic;
+}
+
+.result {
+    font-style: italic;
+    text-align: justify;
+}
+
+.player {
+    font-weight: bold;
+}
+
+.btn{
+    width: $button-small-width !important;
+    --border-radius: 100px !important;
+    margin: 10px;
+}

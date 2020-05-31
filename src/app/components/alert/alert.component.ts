@@ -9,7 +9,7 @@ import { permissionRequiredAlert } from 'src/app/model/enums/Alerts';
 })
 export class AlertComponent {
 
-  private _alert;
+  private _alert: HTMLIonAlertElement;
 
   constructor(
     private _alertController: AlertController

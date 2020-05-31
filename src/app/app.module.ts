@@ -13,6 +13,7 @@ import { CameraPreview } from '@ionic-native/camera-preview/ngx';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import { AlertComponent } from './components/alert/alert.component';
 import { ToastComponent } from './components/toast/toast.component';
+import { LoadingComponent } from './components/loading/loading.component';
 
 @NgModule({
   declarations: [AppComponent],
@@ -30,7 +31,8 @@ import { ToastComponent } from './components/toast/toast.component';
     CameraPreview,
     AndroidPermissions,
     AlertComponent,
-    ToastComponent
+    ToastComponent,
+    LoadingComponent
   ],
   bootstrap: [AppComponent]
 })
