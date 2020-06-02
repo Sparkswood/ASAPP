@@ -130,7 +130,6 @@ export class HomePage {
 
             if (this._gameStatus == GameStatus.GAME_IS_STARTING) {
                 this.navigateToGameScreen();
-                this._toastComponent.info('go to game');
             }
         })
 

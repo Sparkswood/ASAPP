@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { WebSocketMessage, Payload, PayloadMessage, MessageType } from '../model/WebSocketMessenger';
 import { GameStatus } from '../model/enums/GameStatus';
-import { Subject, BehaviorSubject, Timestamp } from 'rxjs';
+import { Subject, BehaviorSubject } from 'rxjs';
 import { Player } from '../model/Player';
 import { gameServiceStatements } from '../model/enums/Toast';
 import { RawPlayer } from '../model/RawPlayer';
@@ -455,7 +455,7 @@ export class GameService {
     handleGameOver(payload: Payload) {
         this.playerAnswerState.next(null);
         this.setGameStatus(GameStatus.GAME_OVER);
-        this.winner.next([payload.name, this.playerId.value === payload.id]);
+        this.winner.next([payload.name, this.playerId.getValue() === payload.winner]);
     }
 
     // #endregion

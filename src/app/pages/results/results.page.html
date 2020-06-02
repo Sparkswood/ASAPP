@@ -20,24 +20,13 @@
   <ion-card>
     <ion-card-header class="fx-col fx-align-center fx-justify-center">
       <ion-card-title>
-        Scoreboard
+        The winner is
       </ion-card-title>
     </ion-card-header>
     <ion-card-content>
       <ion-item lines="none">
         <ion-icon slot="start" color="warning" name="trophy"></ion-icon>
-        <ion-label class="player">Player 1</ion-label>
-        <ion-note slot="end">1.5 s</ion-note>
-      </ion-item>
-      <ion-item lines="none">
-        <ion-icon slot="start" color="medium" name="trophy"></ion-icon>
-        <ion-label class="player">Player 2</ion-label>
-        <ion-note slot="end">6 s</ion-note>
-      </ion-item>
-      <ion-item lines="none">
-        <ion-icon slot="start" color="success" name="medal"></ion-icon>
-        <ion-label class="player">Player 3</ion-label>
-        <ion-note slot="end">10 s</ion-note>
+        <ion-label class="player">{{winner[0]}}</ion-label>
       </ion-item>
     </ion-card-content>
   </ion-card>

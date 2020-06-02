@@ -3,11 +3,10 @@ import { CameraPreview, CameraPreviewPictureOptions, CameraPreviewOptions } from
 import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
 import { ToastComponent } from 'src/app/components/toast/toast.component';
-import { cameraStatements } from 'src/app/model/enums/Toast';
+import { cameraStatements, toastStates } from 'src/app/model/enums/Toast';
 import { LoadingComponent } from 'src/app/components/loading/loading.component';
 import { GameService, UIMessage } from 'src/app/services/game.service';
 import { GameStatus } from 'src/app/model/enums/GameStatus';
-import { Payload } from 'src/app/model/WebSocketMessenger';
 
 @Component({
   selector: 'app-game',
@@ -91,7 +90,7 @@ export class GamePage {
 
   ionViewWillLeave() {
     this.stopCamera();
-    this.unsubscribeToBackButton();
+    // this.unsubscribeToBackButton();
   }
 
   // #region service
@@ -100,9 +99,9 @@ export class GamePage {
 
     this._gameService.gameStatus.subscribe((gameStatus: GameStatus) => {
         this._gameStatus = gameStatus;
-        if (this._gameStatus === GameStatus.GAME_OVER) {
+        if (this._gameStatus == GameStatus.GAME_OVER) {
           this._loadingComponent.dismissLoading();
-          // this.navigateToResultsScreen();
+          this.navigateToResultsScreen();
         }
     })
 
@@ -111,7 +110,7 @@ export class GamePage {
     })
 
     this._gameService.playerAnswerState.subscribe(answerState => {
-      if (answerState > this._playerAnswerState) {
+      if (answerState != null || answerState > this._playerAnswerState) {
         this.discardPicture();
         this._loadingComponent.dismissLoading();
       }
@@ -184,6 +183,7 @@ export class GamePage {
 
   private savePicture() {
     this._doShowFabs = false;
+    this._toastComponent.info(this._gameService.playerId.getValue());
     this._gameService.sendPhoto(this.base64);
     this._playerAnswerState = new Date();
     this._loadingComponent.presentLoading(`Waiting for results ...`);
