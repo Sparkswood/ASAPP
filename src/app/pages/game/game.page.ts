@@ -1,4 +1,4 @@
-import { Component} from '@angular/core';
+import { Component } from '@angular/core';
 import { CameraPreview, CameraPreviewPictureOptions, CameraPreviewOptions } from '@ionic-native/camera-preview/ngx';
 import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
@@ -38,8 +38,8 @@ export class GamePage {
   }
 
   private _pictureOpts: CameraPreviewPictureOptions = {
-    width: 5000,
-    height: 5000,
+    width: 1000,
+    height: 1000,
     quality: 90
   }
 
@@ -53,7 +53,7 @@ export class GamePage {
 
   get gameStatus(): GameStatus {
     return this._gameStatus;
-  } 
+  }
 
   get gameWord(): string {
     return this._gameWord;
@@ -98,11 +98,11 @@ export class GamePage {
   private subscribeToService() {
 
     this._gameService.gameStatus.subscribe((gameStatus: GameStatus) => {
-        this._gameStatus = gameStatus;
-        if (this._gameStatus == GameStatus.GAME_OVER) {
-          this._loadingComponent.dismissLoading();
-          this.navigateToResultsScreen();
-        }
+      this._gameStatus = gameStatus;
+      if (this._gameStatus == GameStatus.GAME_OVER) {
+        this._loadingComponent.dismissLoading();
+        this.navigateToResultsScreen();
+      }
     })
 
     this._gameService.gameWord.subscribe(gameWord => {
@@ -110,6 +110,7 @@ export class GamePage {
     })
 
     this._gameService.playerAnswerState.subscribe(answerState => {
+      console.log(`answer: ${answerState}`);
       if (answerState != null || answerState > this._playerAnswerState) {
         this.discardPicture();
         this._loadingComponent.dismissLoading();
@@ -118,21 +119,21 @@ export class GamePage {
     })
 
     this._gameService.uIMessage.subscribe((message: UIMessage) => {
-        if (message != null) {
-            this._toastComponent.showToast(message);
-        }
+      if (message != null) {
+        this._toastComponent.info(message);
+      }
     });
-}
+  }
   // #endregion
 
   // #region navigation
   private subscribeToBackButton() {
-    this._platform.backButton.subscribe( () => {
+    this._platform.backButton.subscribe(() => {
       this.navigateToHomeScreen();
     });
   }
 
-  private unsubscribeToBackButton() {
+  private unsubscribeFromBackButton() {
     this._platform.backButton.unsubscribe();
   }
 
@@ -170,10 +171,10 @@ export class GamePage {
     this._cameraPreview.hide();
   }
 
-  private takePicture() {
+  takePicture() {
     this._cameraPreview.takePicture(this.pictureOpts).then((imageData) => {
       this._picture = 'data:image/jpeg;base64,' + imageData;
-      this._base64 = imageData;
+      this._base64 = imageData[0];
       this._doShowFabs = true;
       this.hide();
     }, (err) => {
@@ -181,10 +182,11 @@ export class GamePage {
     });
   }
 
-  private savePicture() {
+  savePicture() {
     this._doShowFabs = false;
     this._toastComponent.info(this._gameService.playerId.getValue());
-    this._gameService.sendPhoto(this.base64);
+    console.log(this._base64)
+    this._gameService.sendPhoto(this._base64);
     this._playerAnswerState = new Date();
     this._loadingComponent.presentLoading(`Waiting for results ...`);
   }
@@ -200,6 +202,6 @@ export class GamePage {
     return this._picture !== '';
   }
   // #endregion
-  
+
 
 }

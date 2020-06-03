@@ -145,7 +145,7 @@ export class GameService {
         else if (messageType === MessageType.GAME_START_ERROR) this.handleGameStartError(message);
         else if (messageType === MessageType.ERROR_INTERNAL) this.handleInternalError(message.payload);
         else if (messageType === MessageType.PLAYER_WORD) this.handlePlayerWord(message.payload);
-        else if (messageType === MessageType.PLAYER_ANSWER_WRONG) this.handlePlayerWrongAnswer();
+        else if (messageType === MessageType.PLAYER_ANSWER_ERROR) this.handlePlayerAnswerError(message);
         else if (messageType === MessageType.GAME_OVER) this.handleGameOver(message.payload);
         else console.log(`   message type: ${messageType}`);
     }
@@ -287,6 +287,18 @@ export class GameService {
         this.setGameStatus(GameStatus.RECONNECTING_TO_SERVER);
         this.socketConnectionStatus.next(this._socket.CLOSED);
         setTimeout(this.openWebSocketConnection, this.WEBSOCKET_RECONNECT_TIMEOUT);
+    }
+
+    private handlePlayerAnswerError(message: WebSocketMessage) {
+        console.log(message);
+        this.playerAnswerState.next(new Date());
+    }
+
+    private handleGameOver(payload: Payload) {
+        console.log(payload);
+        this.playerAnswerState.next(null);
+        this.setGameStatus(GameStatus.GAME_OVER);
+        this.winner.next([payload.name, this.playerId.getValue() === payload.winner]);
     }
     //#endregion
 
@@ -431,33 +443,21 @@ export class GameService {
         console.warn('restarting connection');
         this._socket.close();
     }
-    //#endregion
-
-    // #region Game in progress
 
     sendPhoto(photoBase64: string) {
-        if (this.playerId.getValue()) {
-            const sendPhotoRequest = {
+        console.log(photoBase64);
+        if (this.isPlayerIdValid.getValue()) {
+            const request = {
                 type: MessageType.PLAYER_ANSWER,
                 payload: {
                     answer: photoBase64,
                     id: this.playerId.getValue()
                 }
             }
-            this._socket.send(JSON.stringify(sendPhotoRequest));
+            console.log(request)
+            this._socket.send(JSON.stringify(request));
         }
     }
-
-    handlePlayerWrongAnswer() {
-        this.playerAnswerState.next(new Date());
-    }
-
-    handleGameOver(payload: Payload) {
-        this.playerAnswerState.next(null);
-        this.setGameStatus(GameStatus.GAME_OVER);
-        this.winner.next([payload.name, this.playerId.getValue() === payload.winner]);
-    }
-
     // #endregion
 }
 
