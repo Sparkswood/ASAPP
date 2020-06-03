@@ -44,12 +44,16 @@ export class GameService {
     winner: BehaviorSubject<[string, boolean]>;
 
     constructor() {
+        this.initializeService();
+    }
+
+    //#region Initializers functions
+    initializeService() {
         this.setInitialValues();
         this.openWebSocketConnection();
         this.startListeningOnSocketConnectionStatus();
     }
 
-    //#region Initializers functions
     private setInitialValues() {
         // Socket
         this.socketConnectionStatus = new Subject<number>();
