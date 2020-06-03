@@ -5,6 +5,7 @@ import { Subject, BehaviorSubject } from 'rxjs';
 import { Player } from '../model/Player';
 import { gameServiceStatements } from '../model/enums/Toast';
 import { RawPlayer } from '../model/RawPlayer';
+import { PremissionsService } from './premissions.service';
 
 @Injectable({
     providedIn: 'root'
@@ -42,12 +43,39 @@ export class GameService {
 
     playerAnswerState: BehaviorSubject<Date>; // date of last wrong answer
     winner: BehaviorSubject<[string, boolean]>;
+    private _haveCameraPermission: boolean;
 
-    constructor() {
+    constructor(private _permissionService: PremissionsService) {
+        this.observeCameraPermissionChange();
         this.initializeService();
     }
 
     //#region Initializers functions
+    private observeCameraPermissionChange() {
+        this._permissionService.haveCameraPermission.subscribe(permissions => {
+            if (permissions != null) { // if permissions are checked
+                this._haveCameraPermission = permissions;
+                console.log(`camera permission: ${this._haveCameraPermission}`);
+
+                if (this._haveCameraPermission) {
+                    this.initializeService();
+                }
+                else {
+                    /* TODO: Handle no camera permission
+                    *
+                    * e.g. Display message, or exit the app
+                    */
+
+                    const message: UIMessage = {
+                        type: UIMessageType.DANGER,
+                        content: 'No camera permission'
+                    };
+                    this.uIMessage.next(message);
+                }
+            }
+        });
+    }
+
     initializeService() {
         this.setInitialValues();
         this.openWebSocketConnection();
