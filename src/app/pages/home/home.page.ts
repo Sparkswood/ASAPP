@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { GameStatus } from '../../model/enums/GameStatus';
 import { GameService } from '../../services/game.service';
 import { Router } from '@angular/router';
@@ -10,7 +10,7 @@ import { AnimationComponent } from 'src/app/components/animation/animation.compo
     templateUrl: 'home.page.html',
     styleUrls: ['home.page.scss'],
 })
-export class HomePage {
+export class HomePage implements OnInit {
 
     // WebSocket
     private _socketStatusMessage: string = '';
