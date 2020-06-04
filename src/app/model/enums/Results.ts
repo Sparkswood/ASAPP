@@ -1,9 +1,9 @@
 export enum Winner{
     TITLE = 'Congratulations!',
-    DESC = 'You won and destroyed your opponents!'
+    DESC = 'You won and left your opponents far behind!'
 }
 
 export enum Loser{
-    TITLE = 'You suck!',
-    DESC = 'Try harder next time, you loser!'
+    TITLE = 'You lost!',
+    DESC = 'Good luck next time. Don\'t give up!'
 }

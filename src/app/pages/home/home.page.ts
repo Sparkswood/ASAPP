@@ -5,7 +5,6 @@ import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
 import { ToastComponent } from 'src/app/components/toast/toast.component';
 import { AnimationComponent } from 'src/app/components/animation/animation.component';
-import { LoadingComponent } from 'src/app/components/loading/loading.component';
 
 @Component({
     selector: 'app-home',
@@ -106,8 +105,7 @@ export class HomePage {
         private _router: Router,
         private _platform: Platform,
         private _toastComponent: ToastComponent,
-        private _animationComponent: AnimationComponent,
-        private _loadingComponent: LoadingComponent
+        private _animationComponent: AnimationComponent
     ) { }
 
     ngOnInit() {
