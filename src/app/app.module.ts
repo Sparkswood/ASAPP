@@ -14,6 +14,7 @@ import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import { AlertComponent } from './components/alert/alert.component';
 import { ToastComponent } from './components/toast/toast.component';
 import { LoadingComponent } from './components/loading/loading.component';
+import { AnimationComponent } from './components/animation/animation.component';
 
 @NgModule({
   declarations: [AppComponent],
@@ -32,7 +33,8 @@ import { LoadingComponent } from './components/loading/loading.component';
     AndroidPermissions,
     AlertComponent,
     ToastComponent,
-    LoadingComponent
+    LoadingComponent,
+    AnimationComponent
   ],
   bootstrap: [AppComponent]
 })

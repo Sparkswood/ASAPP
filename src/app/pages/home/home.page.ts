@@ -4,6 +4,8 @@ import { GameService, UIMessage } from '../../services/game.service';
 import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
 import { ToastComponent } from 'src/app/components/toast/toast.component';
+import { AnimationComponent } from 'src/app/components/animation/animation.component';
+import { LoadingComponent } from 'src/app/components/loading/loading.component';
 
 @Component({
     selector: 'app-home',
@@ -103,7 +105,9 @@ export class HomePage {
         private _gameService: GameService,
         private _router: Router,
         private _platform: Platform,
-        private _toastComponent: ToastComponent
+        private _toastComponent: ToastComponent,
+        private _animationComponent: AnimationComponent,
+        private _loadingComponent: LoadingComponent
     ) { }
 
     ngOnInit() {
@@ -114,8 +118,12 @@ export class HomePage {
         this.subscribeToBackButton();
     }
 
-    ionViewWillLeave() {
-        // this.unsubscribeFromBackButton();
+    spinIconControl() {
+        if (this.gameStatusIcon === 'sync') {
+            this._animationComponent.spin(document.querySelector('.stateIcon'));
+        } else {
+            this._animationComponent.stopAnimation();
+        }
     }
 
     //#region Initializers functions
@@ -127,6 +135,7 @@ export class HomePage {
         this._gameService.gameStatus.subscribe((gameStatus: GameStatus) => {
             this._gameStatus = gameStatus;
             this._gameStatusIcon = this.getCurrentGameStatusIconName(gameStatus);
+            this.spinIconControl();
 
             if (this._gameStatus == GameStatus.GAME_IS_STARTING) {
                 this.navigateToGameScreen();
@@ -203,7 +212,7 @@ export class HomePage {
                 break;
             }
             case GameStatus.RECONNECTING_TO_SERVER: {
-                gameStatusIcon = 'repeat';
+                gameStatusIcon = 'sync';
                 break;
             }
             case GameStatus.ALL_SLOTS_ARE_FULL: {
