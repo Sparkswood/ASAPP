@@ -1,9 +1,8 @@
 import { Component } from '@angular/core';
 import { GameStatus } from '../../model/enums/GameStatus';
-import { GameService, UIMessage } from '../../services/game.service';
+import { GameService } from '../../services/game.service';
 import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
-import { ToastComponent } from 'src/app/components/toast/toast.component';
 import { AnimationComponent } from 'src/app/components/animation/animation.component';
 
 @Component({
@@ -33,7 +32,7 @@ export class HomePage {
     private _isPlayerReady: boolean;
     private _isPlayerAdmin: boolean;
 
-    isIconSpinning: boolean = false;
+    private _defaultReadyState: boolean = false;
 
 
     // WebSocket
@@ -95,6 +94,10 @@ export class HomePage {
         return this._isPlayerNameValid;
     }
 
+    get defaultReadyState(): boolean {
+        return this._defaultReadyState;
+    }
+
     set playerName(value: string) {
         this._playerName = value;
         this._gameService.setPlayerName(this._playerName);
@@ -104,7 +107,6 @@ export class HomePage {
         private _gameService: GameService,
         private _router: Router,
         private _platform: Platform,
-        private _toastComponent: ToastComponent,
         private _animationComponent: AnimationComponent
     ) { }
 
@@ -181,12 +183,6 @@ export class HomePage {
 
         this._gameService.canGameBeStarted.subscribe(canGameBeStarted => {
             this._canGameBeStarted = canGameBeStarted;
-        });
-
-        this._gameService.uIMessage.subscribe((message: UIMessage) => {
-            if (message != null) {
-                this._toastComponent.showToast(message);
-            }
         });
     }
     //#endregion
@@ -296,10 +292,12 @@ export class HomePage {
     reportReadyState() {
         this._gameService.reportPlayerName();
         this._gameService.reportPlayerReadyState(true);
+        this._defaultReadyState = true;
     }
 
     reportNotReadyState() {
         this._gameService.reportPlayerReadyState(false);
+        this._defaultReadyState = false;
     }
 
     private navigateToGameScreen() {
@@ -310,19 +308,12 @@ export class HomePage {
         this._platform.backButton.subscribe(() => this.exitApp());
     }
 
-    private unsubscribeFromBackButton() {
-        this._platform.backButton.unsubscribe();
-    }
-
     startGame() {
         this._gameService.startGame();
     }
 
-    reconnect() {
-        this._gameService.reconnectToSocket();
-    }
-
     exitApp() {
+        this._gameService.reconnectToSocket();
         navigator['app'].exitApp();
     }
     //#endregion

@@ -33,7 +33,8 @@ export class ResultsPage {
     private _gameService: GameService
   ) {
     this.subscribeToBackButton();
-    this._winner = this._gameService.winner.value;
+    console.log(this._gameService.winner.getValue());
+    this._winner = this._gameService.winner.getValue();
     this._resultTitle = this._winner[1] ? Winner.TITLE : Loser.TITLE;
     this._resultDescription = this._winner[1] ? Winner.DESC : Loser.DESC;
    }
@@ -57,10 +58,12 @@ export class ResultsPage {
     }
   
     private navigateToHomeScreen() {
+      this._gameService.reconnectToSocket();
       this._router.navigate(['/home']);
     }
 
-    private exitApp() {
+    exitApp() {
+      this._gameService.reconnectToSocket();
       navigator['app'].exitApp();
     }
   

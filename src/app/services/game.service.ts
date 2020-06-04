@@ -354,6 +354,8 @@ export class GameService {
         console.log(payload);
         this.playerAnswerState.next(null);
         this.setGameStatus(GameStatus.GAME_OVER);
+        console.log(this.playerId.getValue());
+        console.log(payload.winner);
         this.winner.next([payload.name, this.playerId.getValue() === payload.winner]);
     }
     //#endregion
