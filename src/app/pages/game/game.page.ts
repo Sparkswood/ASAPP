@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CameraPreview, CameraPreviewPictureOptions, CameraPreviewOptions } from '@ionic-native/camera-preview/ngx';
 import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
@@ -13,7 +13,7 @@ import { GameStatus } from 'src/app/model/enums/GameStatus';
   templateUrl: './game.page.html',
   styleUrls: ['./game.page.scss'],
 })
-export class GamePage {
+export class GamePage implements OnInit {
 
   private _picture: string = '';
   private _base64: string = '';
@@ -82,7 +82,9 @@ export class GamePage {
     private _toastComponent: ToastComponent,
     private _loadingComponent: LoadingComponent,
     private _gameService: GameService
-  ) {
+  ) { }
+
+  ngOnInit() {
     this.startCamera();
     this.subscribeToBackButton();
     this.subscribeToService();

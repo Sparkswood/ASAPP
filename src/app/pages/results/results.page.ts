@@ -37,36 +37,36 @@ export class ResultsPage {
     this._winner = this._gameService.winner.getValue();
     this._resultTitle = this._winner[1] ? Winner.TITLE : Loser.TITLE;
     this._resultDescription = this._winner[1] ? Winner.DESC : Loser.DESC;
-   }
+  }
 
-   ionViewWillLeave() {
-    this.unsubscribeToBackButton();
+  ionViewWillLeave() {
+    // this.unsubscribeToBackButton();
     this._winner = ['', false];
     this._resultTitle = '';
     this._resultDescription = '';
-   }
+  }
 
-    // #region navigation
-    private subscribeToBackButton() {
-      this._platform.backButton.subscribe( () => {
-        this.navigateToHomeScreen();
-      });
-    }
-  
-    private unsubscribeToBackButton() {
-      this._platform.backButton.unsubscribe();
-    }
-  
-    private navigateToHomeScreen() {
-      this._gameService.reconnectToSocket();
-      this._router.navigate(['/home']);
-    }
+  // #region navigation
+  private subscribeToBackButton() {
+    this._platform.backButton.subscribe(() => {
+      this.navigateToHomeScreen();
+    });
+  }
 
-    exitApp() {
-      this._gameService.reconnectToSocket();
-      navigator['app'].exitApp();
-    }
-  
-    // #endregion
+  private unsubscribeToBackButton() {
+    this._platform.backButton.unsubscribe();
+  }
+
+  private navigateToHomeScreen() {
+    this._gameService.reconnectToSocket();
+    this._router.navigate(['/home']);
+  }
+
+  exitApp() {
+    this._gameService.reconnectToSocket();
+    navigator['app'].exitApp();
+  }
+
+  // #endregion
 
 }
