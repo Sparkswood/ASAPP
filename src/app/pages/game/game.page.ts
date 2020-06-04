@@ -3,9 +3,9 @@ import { CameraPreview, CameraPreviewPictureOptions, CameraPreviewOptions } from
 import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
 import { ToastComponent } from 'src/app/components/toast/toast.component';
-import { cameraStatements, toastStates } from 'src/app/model/enums/Toast';
+import { cameraStatements } from 'src/app/model/enums/Toast';
 import { LoadingComponent } from 'src/app/components/loading/loading.component';
-import { GameService, UIMessage } from 'src/app/services/game.service';
+import { GameService } from 'src/app/services/game.service';
 import { GameStatus } from 'src/app/model/enums/GameStatus';
 
 @Component({
@@ -118,11 +118,6 @@ export class GamePage {
       this._playerAnswerState = answerState;
     })
 
-    this._gameService.uIMessage.subscribe((message: UIMessage) => {
-      if (message != null) {
-        this._toastComponent.info(message);
-      }
-    });
   }
   // #endregion
 
@@ -133,11 +128,8 @@ export class GamePage {
     });
   }
 
-  private unsubscribeFromBackButton() {
-    this._platform.backButton.unsubscribe();
-  }
-
   private navigateToHomeScreen() {
+    this._gameService.reconnectToSocket();
     this._router.navigate(['/home']);
   }
 
@@ -184,8 +176,6 @@ export class GamePage {
 
   savePicture() {
     this._doShowFabs = false;
-    this._toastComponent.info(this._gameService.playerId.getValue());
-    console.log(this._base64)
     this._gameService.sendPhoto(this._base64);
     this._playerAnswerState = new Date();
     this._loadingComponent.presentLoading(`Waiting for results ...`);

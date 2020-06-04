@@ -21,12 +21,12 @@
                 </ion-input>
             </div>
             <div class="fx-col fx-align-center fx-justify-center">
-                <ion-button style="--border-radius: 100px" (click)="reportReadyState()"
+                <ion-button [fill]="defaultReadyState ? 'solid' : 'outline'" style="--border-radius: 100px" (click)="reportReadyState()"
                     [disabled]="!(isPlayerNameValid && canGameBeJoinedTo())">
                     Ready
                 </ion-button>
 
-                <ion-button fill="outline" style="--border-radius: 100px" (click)="reportNotReadyState()"
+                <ion-button [fill]="defaultReadyState ? 'outline' : 'solid'" style="--border-radius: 100px" (click)="reportNotReadyState()"
                     [disabled]="!canGameBeJoinedTo()">Not ready
                 </ion-button>
             </div>
