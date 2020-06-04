@@ -109,10 +109,8 @@ export class HomePage {
     ) { }
 
     ngOnInit() {
-        this._gameStatus = GameStatus.CONNECTING_TO_SERVER;
-        this._requiredNumberOfPlayers = 2;
-
-        this.subscribeToService();
+        this.subscribeToGameStatus();
+        this.observeServiceInitialized();
         this.subscribeToBackButton();
     }
 
@@ -125,11 +123,7 @@ export class HomePage {
     }
 
     //#region Initializers functions
-    private subscribeToService() {
-        this._gameService.socketConnectionStatus.subscribe(socketStatus => {
-            this._socketStatusMessage = this.getWebSocketStatusString(socketStatus);
-        })
-
+    private subscribeToGameStatus() {
         this._gameService.gameStatus.subscribe((gameStatus: GameStatus) => {
             this._gameStatus = gameStatus;
             this._gameStatusIcon = this.getCurrentGameStatusIconName(gameStatus);
@@ -139,18 +133,31 @@ export class HomePage {
                 this.navigateToGameScreen();
             }
         })
+    }
+
+    private observeServiceInitialized() {
+        this._gameService.isServiceInitialized.subscribe(isInitialzed => {
+            if (isInitialzed) {
+                this.subscribeToService();
+            }
+        });
+    }
+    private subscribeToService() {
+        this._gameService.socketConnectionStatus.subscribe(socketStatus => {
+            this._socketStatusMessage = this.getWebSocketStatusString(socketStatus);
+        });
 
         this._gameService.playerId.subscribe(playerId => {
             this._playerId = playerId;
-        })
+        });
 
         this._gameService.isPlayerIdValid.subscribe(isIdValid => {
             this._isPlayerIdValid = isIdValid;
-        })
+        });
 
         this._gameService.isPlayerNameValid.subscribe(isNameValid => {
             this._isPlayerNameValid = isNameValid;
-        })
+        });
 
         this._gameService.isPlayerReady.subscribe(readyStatus => {
             this._isPlayerReady = readyStatus;
@@ -166,15 +173,15 @@ export class HomePage {
 
         this._gameService.isPlayerAdmin.subscribe(isAdmin => {
             this._isPlayerAdmin = isAdmin;
-        })
+        });
 
         this._gameService.numberOfFreeSlots.subscribe(freeSlots => {
             this._numberOfFreeSlots = freeSlots;
-        })
+        });
 
         this._gameService.canGameBeStarted.subscribe(canGameBeStarted => {
             this._canGameBeStarted = canGameBeStarted;
-        })
+        });
 
         this._gameService.uIMessage.subscribe((message: UIMessage) => {
             if (message != null) {
@@ -205,6 +212,10 @@ export class HomePage {
         let gameStatusIcon = '';
 
         switch (gameStatus) {
+            case GameStatus.WAITING_FOR_CAMERA_PERMISSION: {
+                gameStatusIcon = 'camera';
+                break;
+            }
             case GameStatus.CONNECTING_TO_SERVER: {
                 gameStatusIcon = 'hourglass';
                 break;
@@ -250,7 +261,6 @@ export class HomePage {
                 break;
             }
         }
-        // console.log(`icon: ${gameStatusIcon}`);
         return gameStatusIcon;
     }
 

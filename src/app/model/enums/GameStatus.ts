@@ -1,4 +1,7 @@
 export enum GameStatus {
+    WAITING_FOR_CAMERA_PERMISSION = 'Waiting for camera permission',
+    CHECKING_CAMERA_PERMISSION = 'Checking camera permission',
+    NO_CAMERA_PERMISSION = 'No camera permission',
     CONNECTING_TO_SERVER = 'Connecting to server',
     CONNECTED_TO_SERVER = 'Connected to server',
     WAITING_FOR_READY_STATUS = 'Waiting for you to get ready',

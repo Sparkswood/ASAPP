@@ -5,12 +5,13 @@ import { Subject, BehaviorSubject } from 'rxjs';
 import { Player } from '../model/Player';
 import { gameServiceStatements } from '../model/enums/Toast';
 import { RawPlayer } from '../model/RawPlayer';
+import { PermissionsService } from './permissions.service';
 
 @Injectable({
     providedIn: 'root'
 })
 export class GameService {
-    static readonly MAX_FAILED_CONNEECTION_ATTEMPTS = 10;
+    static readonly MAX_FAILED_CONNECTION_ATTEMPTS = 10;
     private readonly MAX_NUMBER_OF_PLAYERS = 4;
     private readonly REQUIRED_NUMBER_OF_PLAYERS = 2;
     private readonly WEBSOCKET_RECONNECT_TIMEOUT = 1000;
@@ -18,19 +19,27 @@ export class GameService {
     private readonly WEBSOCKET_STATUS_CHECK_INTERVAL = 5000;
     private readonly WEBSOCKET_URL = 'ws://fast-photo.herokuapp.com/';
 
+    // Service
+    private _haveCameraPermission: boolean;
+    isServiceInitialized: BehaviorSubject<boolean>;
+
     // WebSocket
     private _socket: WebSocket;
     socketConnectionStatus: Subject<number>;
+    private _failedConnectionAttempts: number;
+    private _pingInterval: NodeJS.Timeout;
 
     // Game
     uIMessage: BehaviorSubject<UIMessage>;
     numberOfConnectedPlayers: BehaviorSubject<number>;
     numberOfReadyPlayers: BehaviorSubject<number>;
-    gameStatus: BehaviorSubject<GameStatus>;
+    gameStatus: BehaviorSubject<GameStatus>
     gameWord: BehaviorSubject<string>;
     numberOfFreeSlots: BehaviorSubject<number>;
     canGameBeStarted: BehaviorSubject<boolean>;
     canGameBeJoinedTo: BehaviorSubject<boolean>;
+    playerAnswerState: BehaviorSubject<Date>; // date of last wrong answer
+    winner: BehaviorSubject<[string, boolean]>;
 
     // Player
     playerName: BehaviorSubject<string>;
@@ -40,27 +49,57 @@ export class GameService {
     isPlayerReady: BehaviorSubject<boolean>;
     isPlayerAdmin: BehaviorSubject<boolean>;
 
-    playerAnswerState: BehaviorSubject<Date>; // date of last wrong answer
-    winner: BehaviorSubject<[string, boolean]>;
+    constructor(private _permissionService: PermissionsService) {
+        this.uIMessage = new BehaviorSubject<UIMessage>(null);
+        this.gameStatus = new BehaviorSubject<GameStatus>(GameStatus.CHECKING_CAMERA_PERMISSION);
+        this.isServiceInitialized = new BehaviorSubject<boolean>(false);
+        this.observeCameraPermissionChange();
+    }
 
-    constructor() {
+    //#region Initializers functions
+    private observeCameraPermissionChange() {
+        this._permissionService.haveCameraPermission.subscribe(havePermission => {
+            this.setGameStatus(GameStatus.CHECKING_CAMERA_PERMISSION);
+            if (havePermission != null) { // if permissions are checked
+                this._haveCameraPermission = havePermission;
+
+                if (this._haveCameraPermission) {
+                    this.initializeService();
+                    this.isServiceInitialized.next(true);
+                    this.uIMessage.next(null);
+                }
+                else {
+                    this.setGameStatus(GameStatus.NO_CAMERA_PERMISSION);
+
+                    const message: UIMessage = {
+                        type: UIMessageType.DANGER,
+                        content: 'No camera permission'
+                    };
+                    this.uIMessage.next(message);
+                }
+            }
+            else {
+                this.setGameStatus(GameStatus.WAITING_FOR_CAMERA_PERMISSION);
+            }
+        });
+    }
+
+    initializeService() {
         this.setInitialValues();
         this.openWebSocketConnection();
         this.startListeningOnSocketConnectionStatus();
     }
 
-    //#region Initializers functions
     private setInitialValues() {
         // Socket
         this.socketConnectionStatus = new Subject<number>();
+        this._failedConnectionAttempts = 0;
 
         // Game
-        this.uIMessage = new BehaviorSubject<UIMessage>(null);
         this.numberOfConnectedPlayers = new BehaviorSubject<number>(0);
         this.numberOfReadyPlayers = new BehaviorSubject<number>(0);
-        this.gameStatus = new BehaviorSubject<GameStatus>(GameStatus.CONNECTING_TO_SERVER);
         this.gameWord = new BehaviorSubject<string>(null);
-        this.numberOfFreeSlots = new BehaviorSubject<number>(this.MAX_NUMBER_OF_PLAYERS);
+        this.numberOfFreeSlots = new BehaviorSubject<number>(0);
         this.canGameBeStarted = new BehaviorSubject<boolean>(false);
 
         // Player
@@ -89,7 +128,7 @@ export class GameService {
     }
 
     private startPinging() {
-        setInterval(this.sendPing, this.WEBSOCKET_PING_INTERVAL);
+        this._pingInterval = setInterval(this.sendPing, this.WEBSOCKET_PING_INTERVAL);
     }
 
     private sendPing = () => {
@@ -117,18 +156,35 @@ export class GameService {
     private handleWebSocketOpen = () => {
         console.warn('socket open');
 
+        this._failedConnectionAttempts = 0;
+
+        if (this.isPlayerIdSet())
+            this.checkPlayerId();
+        else
+            this.requestPlayerId();
+
         if (this.isPlayerReady.getValue())
             this.setGameStatus(GameStatus.WAITING_FOR_OTHER_PLAYERS);
         else
             this.setGameStatus(GameStatus.WAITING_FOR_READY_STATUS);
 
         this.socketConnectionStatus.next(this._socket.OPEN);
-
-        if (this.isPlayerIdSet())
-            this.checkPlayerId();
-        else
-            this.requestPlayerId();
     };
+
+    private handleWebSocketClose = () => {
+        clearTimeout(this._pingInterval);
+        this._failedConnectionAttempts++;
+
+        if (this._failedConnectionAttempts <= GameService.MAX_FAILED_CONNECTION_ATTEMPTS) {
+            console.warn('socket close');
+            this.setGameStatus(GameStatus.RECONNECTING_TO_SERVER);
+            this.socketConnectionStatus.next(this._socket.CLOSED);
+            setTimeout(this.openWebSocketConnection, this.WEBSOCKET_RECONNECT_TIMEOUT);
+        }
+        else {
+            this.setGameStatus(GameStatus.DISCONNECTED_FROM_SERVER);
+        }
+    }
 
     private handleSocketMessage = (event) => {
         const message: WebSocketMessage = JSON.parse(event.data);
@@ -151,6 +207,9 @@ export class GameService {
     }
 
     private handleWelcomeSuccess(payload: Payload) {
+        console.log('welcome success');
+        console.log(payload);
+
         const id = payload.id;
 
         if (id != null) {
@@ -163,6 +222,9 @@ export class GameService {
     }
 
     private handleWelcomeError(payload: Payload) {
+        console.log('welcome error');
+        console.log(payload);
+
         if (payload.error == PayloadMessage.NO_MORE_SPACE_FOR_NEW_PLAYERS) {
             this.setGameStatus(GameStatus.ALL_SLOTS_ARE_FULL);
         } else if (payload.error == PayloadMessage.QUEUE_STAGE_HAS_ENDED) {
@@ -193,6 +255,7 @@ export class GameService {
     }
 
     private handlePlayerReadyError(payload: Payload) {
+        console.log('player ready error');
         console.log(payload);
     }
 
@@ -280,13 +343,6 @@ export class GameService {
         else {
             this.setGameStatus(GameStatus.SOME_GAME_IS_TAKING_PLACE)
         }
-    }
-
-    private handleWebSocketClose = () => {
-        console.warn('socket close');
-        this.setGameStatus(GameStatus.RECONNECTING_TO_SERVER);
-        this.socketConnectionStatus.next(this._socket.CLOSED);
-        setTimeout(this.openWebSocketConnection, this.WEBSOCKET_RECONNECT_TIMEOUT);
     }
 
     private handlePlayerAnswerError(message: WebSocketMessage) {
@@ -388,36 +444,26 @@ export class GameService {
     }
 
     private requestPlayerId() {
-        if (!this.isSocketOpened()) {
-            this.uIMessage.next({
-                type: UIMessageType.WARN,
-                content: gameServiceStatements.SOCKET_CLOSED
-            });
-        } else {
-            this._socket.send(
-                JSON.stringify({
-                    type: MessageType.AUTH_WELCOME,
-                    payload: {}
-                })
-            );
+        if (this.isSocketOpened()) { // Don't display message if socket is closed, because it is independent of the user
+            const idRequest = {
+                type: MessageType.AUTH_WELCOME,
+                payload: {}
+            };
+
+            this._socket.send(JSON.stringify(idRequest));
         }
     }
 
     private checkPlayerId() {
-        if (!this.isSocketOpened()) {
-            this.uIMessage.next({
-                type: UIMessageType.WARN,
-                content: gameServiceStatements.SOCKET_CLOSED
-            });
-        } else {
-            this._socket.send(
-                JSON.stringify({
-                    type: MessageType.AUTH_WELCOME,
-                    payload: {
-                        id: this.playerId.getValue()
-                    }
-                })
-            );
+        if (this.isSocketOpened()) { // Don't display message if socket is closed, because it is independent of the user
+            const checkIdRequest = {
+                type: MessageType.AUTH_WELCOME,
+                payload: {
+                    id: this.playerId.getValue()
+                }
+            };
+
+            this._socket.send(JSON.stringify(checkIdRequest));
         }
     }
 
@@ -435,27 +481,34 @@ export class GameService {
                     id: this.playerId.getValue()
                 }
             }
+
             this._socket.send(JSON.stringify(startGameRequest));
         }
     }
 
     reconnectToSocket() {
         console.warn('restarting connection');
-        this._socket.close();
+        this._failedConnectionAttempts = 0;
+
+        if ([WebSocket.OPEN, WebSocket.CONNECTING].includes(this._socket.readyState)) {
+            this._socket.close();
+        }
+        else {
+            this.initializeService();
+        }
     }
 
     sendPhoto(photoBase64: string) {
-        console.log(photoBase64);
         if (this.isPlayerIdValid.getValue()) {
-            const request = {
+            const photoRequest = {
                 type: MessageType.PLAYER_ANSWER,
                 payload: {
                     answer: photoBase64,
                     id: this.playerId.getValue()
                 }
             }
-            console.log(request)
-            this._socket.send(JSON.stringify(request));
+
+            this._socket.send(JSON.stringify(photoRequest));
         }
     }
     // #endregion
