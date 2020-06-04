@@ -11,7 +11,8 @@ import { PermissionsService } from './permissions.service';
     providedIn: 'root'
 })
 export class GameService {
-    static readonly MAX_FAILED_CONNECTION_ATTEMPTS = 10;
+    static readonly MAX_FAILED_CONNECTION_ATTEMPTS = 5;
+    static readonly MAX_PINGS_WITHOUT_PONGS = 10;
     private readonly MAX_NUMBER_OF_PLAYERS = 4;
     private readonly REQUIRED_NUMBER_OF_PLAYERS = 2;
     private readonly WEBSOCKET_RECONNECT_TIMEOUT = 1000;
@@ -22,12 +23,14 @@ export class GameService {
     // Service
     private _haveCameraPermission: boolean;
     isServiceInitialized: BehaviorSubject<boolean>;
+    // gameReinitialized: Subject<boolean>;
 
     // WebSocket
     private _socket: WebSocket;
     socketConnectionStatus: Subject<number>;
     private _failedConnectionAttempts: number;
     private _pingInterval: NodeJS.Timeout;
+    private pingsWithoutPongs: number;
 
     // Game
     uIMessage: BehaviorSubject<UIMessage>;
@@ -36,8 +39,8 @@ export class GameService {
     gameStatus: BehaviorSubject<GameStatus>
     gameWord: BehaviorSubject<string>;
     numberOfFreeSlots: BehaviorSubject<number>;
-    canGameBeStarted: BehaviorSubject<boolean>;
-    canGameBeJoinedTo: BehaviorSubject<boolean>;
+    // canGameBeStarted: BehaviorSubject<boolean>;
+    // canGameBeJoinedTo: BehaviorSubject<boolean>;
     playerAnswerState: BehaviorSubject<Date>; // date of last wrong answer
     winner: BehaviorSubject<[string, boolean]>;
 
@@ -51,6 +54,7 @@ export class GameService {
 
     constructor(private _permissionService: PermissionsService) {
         this.uIMessage = new BehaviorSubject<UIMessage>(null);
+        // this.gameReinitialized = new BehaviorSubject<boolean>(false);
         this.gameStatus = new BehaviorSubject<GameStatus>(GameStatus.CHECKING_CAMERA_PERMISSION);
         this.isServiceInitialized = new BehaviorSubject<boolean>(false);
         this.observeCameraPermissionChange();
@@ -59,27 +63,19 @@ export class GameService {
     //#region Initializers functions
     private observeCameraPermissionChange() {
         this._permissionService.haveCameraPermission.subscribe(havePermission => {
-            this.setGameStatus(GameStatus.CHECKING_CAMERA_PERMISSION);
+            this.changeGameStatus(GameStatus.CHECKING_CAMERA_PERMISSION);
             if (havePermission != null) { // if permissions are checked
                 this._haveCameraPermission = havePermission;
 
                 if (this._haveCameraPermission) {
                     this.initializeService();
-                    this.isServiceInitialized.next(true);
-                    this.uIMessage.next(null);
                 }
                 else {
-                    this.setGameStatus(GameStatus.NO_CAMERA_PERMISSION);
-
-                    const message: UIMessage = {
-                        type: UIMessageType.DANGER,
-                        content: 'No camera permission'
-                    };
-                    this.uIMessage.next(message);
+                    this.changeGameStatus(GameStatus.NO_CAMERA_PERMISSION);
                 }
             }
             else {
-                this.setGameStatus(GameStatus.WAITING_FOR_CAMERA_PERMISSION);
+                this.changeGameStatus(GameStatus.WAITING_FOR_CAMERA_PERMISSION);
             }
         });
     }
@@ -88,19 +84,20 @@ export class GameService {
         this.setInitialValues();
         this.openWebSocketConnection();
         this.startListeningOnSocketConnectionStatus();
+        this.isServiceInitialized.next(true);
     }
 
     private setInitialValues() {
         // Socket
         this.socketConnectionStatus = new Subject<number>();
         this._failedConnectionAttempts = 0;
+        this.pingsWithoutPongs = 0;
 
         // Game
         this.numberOfConnectedPlayers = new BehaviorSubject<number>(0);
         this.numberOfReadyPlayers = new BehaviorSubject<number>(0);
         this.gameWord = new BehaviorSubject<string>(null);
         this.numberOfFreeSlots = new BehaviorSubject<number>(0);
-        this.canGameBeStarted = new BehaviorSubject<boolean>(false);
 
         // Player
         this.playerName = new BehaviorSubject<string>(null);
@@ -134,14 +131,22 @@ export class GameService {
     private sendPing = () => {
         if (this.isPlayerIdValid.getValue() && this._socket.readyState == WebSocket.OPEN) {
             console.log('Ping');
+            console.log(`Pings w/t pongs: ${this.pingsWithoutPongs}/${GameService.MAX_PINGS_WITHOUT_PONGS}`);
 
-            const pingRequest = {
-                type: MessageType.PLAYER_PING,
-                payload: {
-                    id: this.playerId.getValue()
-                }
+            if (this.pingsWithoutPongs <= GameService.MAX_PINGS_WITHOUT_PONGS) {
+                const pingRequest = {
+                    type: MessageType.PLAYER_PING,
+                    payload: {
+                        id: this.playerId.getValue()
+                    }
+                };
+                this._socket.send(JSON.stringify(pingRequest));
+                this.pingsWithoutPongs++;
             }
-            this._socket.send(JSON.stringify(pingRequest))
+            else {
+                this.changeGameStatus(GameStatus.DISCONNECTED_FROM_SERVER);
+                this.reconnectToSocket();
+            }
         }
     }
 
@@ -164,9 +169,9 @@ export class GameService {
             this.requestPlayerId();
 
         if (this.isPlayerReady.getValue())
-            this.setGameStatus(GameStatus.WAITING_FOR_OTHER_PLAYERS);
+            this.changeGameStatus(GameStatus.WAITING_FOR_OTHER_PLAYERS);
         else
-            this.setGameStatus(GameStatus.WAITING_FOR_READY_STATUS);
+            this.changeGameStatus(GameStatus.WAITING_FOR_READY_STATUS);
 
         this.socketConnectionStatus.next(this._socket.OPEN);
     };
@@ -177,12 +182,12 @@ export class GameService {
 
         if (this._failedConnectionAttempts <= GameService.MAX_FAILED_CONNECTION_ATTEMPTS) {
             console.warn('socket close');
-            this.setGameStatus(GameStatus.RECONNECTING_TO_SERVER);
+            this.changeGameStatus(GameStatus.RECONNECTING_TO_SERVER);
             this.socketConnectionStatus.next(this._socket.CLOSED);
             setTimeout(this.openWebSocketConnection, this.WEBSOCKET_RECONNECT_TIMEOUT);
         }
         else {
-            this.setGameStatus(GameStatus.DISCONNECTED_FROM_SERVER);
+            this.changeGameStatus(GameStatus.DISCONNECTED_FROM_SERVER);
         }
     }
 
@@ -226,10 +231,10 @@ export class GameService {
         console.log(payload);
 
         if (payload.error == PayloadMessage.NO_MORE_SPACE_FOR_NEW_PLAYERS) {
-            this.setGameStatus(GameStatus.ALL_SLOTS_ARE_FULL);
+            this.changeGameStatus(GameStatus.ALL_SLOTS_ARE_FULL);
         } else if (payload.error == PayloadMessage.QUEUE_STAGE_HAS_ENDED) {
             // TODO: Handle proper action
-            this.setGameStatus(GameStatus.SOME_GAME_IS_TAKING_PLACE);
+            this.changeGameStatus(GameStatus.SOME_GAME_IS_TAKING_PLACE);
         }
 
         this.playerId.next(null);
@@ -244,13 +249,13 @@ export class GameService {
         }
 
         if (this.isPlayerReady) {
-            if (this.canGameBeStarted.getValue()) {
-                this.setGameStatus(GameStatus.WAITING_FOR_ADMIN_TO_START_THE_GAME);
+            if (this.canGameBeStarted()) {
+                this.changeGameStatus(GameStatus.WAITING_FOR_ADMIN_TO_START_THE_GAME);
             }
-            this.setGameStatus(GameStatus.WAITING_FOR_OTHER_PLAYERS);
+            this.changeGameStatus(GameStatus.WAITING_FOR_OTHER_PLAYERS);
         }
         else {
-            this.setGameStatus(GameStatus.WAITING_FOR_READY_STATUS);
+            this.changeGameStatus(GameStatus.WAITING_FOR_READY_STATUS);
         }
     }
 
@@ -273,16 +278,16 @@ export class GameService {
 
             if (this.numberOfReadyPlayers.getValue() >= this.REQUIRED_NUMBER_OF_PLAYERS) {
                 if (this.isPlayerReady.getValue()) {
-                    this.canGameBeStarted.next(true);
-                    this.setGameStatus(GameStatus.WAITING_FOR_ADMIN_TO_START_THE_GAME)
+                    // this.canGameBeStarted.next(true);
+                    this.changeGameStatus(GameStatus.WAITING_FOR_ADMIN_TO_START_THE_GAME)
                 }
             }
             else {
-                this.canGameBeStarted.next(false);
+                // this.canGameBeStarted.next(false);
                 if (this.isPlayerReady.getValue())
-                    this.setGameStatus(GameStatus.WAITING_FOR_OTHER_PLAYERS);
+                    this.changeGameStatus(GameStatus.WAITING_FOR_OTHER_PLAYERS);
                 else
-                    this.setGameStatus(GameStatus.WAITING_FOR_READY_STATUS);
+                    this.changeGameStatus(GameStatus.WAITING_FOR_READY_STATUS);
             }
         }
     }
@@ -309,12 +314,15 @@ export class GameService {
     }
 
     private handlePingError() {
-        this.setGameStatus(GameStatus.DISCONNECTED_FROM_SERVER);
+        this.changeGameStatus(GameStatus.DISCONNECTED_FROM_SERVER);
 
     }
 
     private handlePong() {
-        console.log(`Pong`)
+        console.log(`Pong`);
+        this.pingsWithoutPongs--;
+        if (this.pingsWithoutPongs < 0)
+            console.log('Something went weirdly wrong');
     }
 
     private handleGameStartSuccess(message: any) {
@@ -327,21 +335,21 @@ export class GameService {
 
     private handleInternalError(payload: Payload) {
         if (payload.message && payload.message == PayloadMessage.NO_AWS_KEYS_LOADED) {
-            this.setGameStatus(GameStatus.AWS_KEYS_NOT_LOADED);
+            this.changeGameStatus(GameStatus.AWS_KEYS_NOT_LOADED);
         } else {
             console.log(payload);
-            this.setGameStatus(GameStatus.INTERNAL_SERVER_ERROR);
+            this.changeGameStatus(GameStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     private handlePlayerWord(payload: Payload) {
         const word = payload.word;
         if (this.isPlayerReady.getValue()) {
-            this.setGameStatus(GameStatus.GAME_IS_STARTING);
+            this.changeGameStatus(GameStatus.GAME_IS_STARTING);
             this.gameWord.next(word);
         }
         else {
-            this.setGameStatus(GameStatus.SOME_GAME_IS_TAKING_PLACE)
+            this.changeGameStatus(GameStatus.SOME_GAME_IS_TAKING_PLACE)
         }
     }
 
@@ -353,12 +361,32 @@ export class GameService {
     private handleGameOver(payload: Payload) {
         console.log(payload);
         this.playerAnswerState.next(null);
-        this.setGameStatus(GameStatus.GAME_OVER);
+        this.changeGameStatus(GameStatus.GAME_OVER);
         this.winner.next([payload.name, this.playerId.getValue() === payload.winner]);
     }
     //#endregion
 
     //#region Boolean functions
+    canGameBeJoinedTo(): boolean {
+        return ![
+            GameStatus.ALL_SLOTS_ARE_FULL,
+            GameStatus.DISCONNECTED_FROM_SERVER,
+            GameStatus.SOME_GAME_IS_TAKING_PLACE,
+            GameStatus.AWS_KEYS_NOT_LOADED,
+            GameStatus.INTERNAL_SERVER_ERROR
+        ].includes(this.gameStatus.getValue());
+    }
+
+    canGameBeStarted(): boolean {
+        return ![
+            GameStatus.ALL_SLOTS_ARE_FULL,
+            GameStatus.DISCONNECTED_FROM_SERVER,
+            GameStatus.SOME_GAME_IS_TAKING_PLACE,
+            GameStatus.AWS_KEYS_NOT_LOADED,
+            GameStatus.INTERNAL_SERVER_ERROR
+        ].includes(this.gameStatus.getValue());
+    }
+
     private isSocketOpened(): boolean {
         return this._socket.readyState == this._socket.OPEN;
     }
@@ -369,7 +397,7 @@ export class GameService {
     //#endregion
 
     //#region Actuators functions
-    setGameStatus(gameStatus: GameStatus) {
+    changeGameStatus(gameStatus: GameStatus) {
         if (this.gameStatus.getValue() != gameStatus) {
             this.gameStatus.next(gameStatus);
         }
@@ -490,10 +518,13 @@ export class GameService {
         console.warn('restarting connection');
         this._failedConnectionAttempts = 0;
 
-        if ([WebSocket.OPEN, WebSocket.CONNECTING].includes(this._socket.readyState)) {
+        if ([WebSocket.OPEN, WebSocket.CONNECTING].includes(this._socket.readyState) ||
+            this.gameStatus.getValue() == GameStatus.DISCONNECTED_FROM_SERVER
+        ) {
             this._socket.close();
         }
         else {
+            console.log('reinitlializing service');
             this.initializeService();
         }
     }

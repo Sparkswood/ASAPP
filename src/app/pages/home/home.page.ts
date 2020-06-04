@@ -23,7 +23,6 @@ export class HomePage {
     private _numberOfConnectedPlayers: number;
     private _numberOfReadyPlayers: number;
     private _numberOfFreeSlots: number;
-    private _canGameBeStarted: boolean;
 
     // Player
     private _playerId: string;
@@ -66,9 +65,9 @@ export class HomePage {
         return this._numberOfFreeSlots;
     }
 
-    get canGameBeStarted(): boolean {
-        return this._canGameBeStarted;
-    }
+    // get canGameBeStarted(): boolean {
+    //     return this._canGameBeStarted;
+    // }
 
     // Player
     get isPlayerReady(): boolean {
@@ -109,8 +108,7 @@ export class HomePage {
     ) { }
 
     ngOnInit() {
-        this.subscribeToGameStatus();
-        this.observeServiceInitialized();
+        this.subscribeToServiceControls();
         this.subscribeToBackButton();
     }
 
@@ -123,7 +121,7 @@ export class HomePage {
     }
 
     //#region Initializers functions
-    private subscribeToGameStatus() {
+    private subscribeToServiceControls() {
         this._gameService.gameStatus.subscribe((gameStatus: GameStatus) => {
             this._gameStatus = gameStatus;
             this._gameStatusIcon = this.getCurrentGameStatusIconName(gameStatus);
@@ -132,16 +130,16 @@ export class HomePage {
             if (this._gameStatus == GameStatus.GAME_IS_STARTING) {
                 this.navigateToGameScreen();
             }
-        })
-    }
+        });
 
-    private observeServiceInitialized() {
         this._gameService.isServiceInitialized.subscribe(isInitialzed => {
             if (isInitialzed) {
+                console.log('resubscribing to service');
                 this.subscribeToService();
             }
         });
     }
+
     private subscribeToService() {
         this._gameService.socketConnectionStatus.subscribe(socketStatus => {
             this._socketStatusMessage = this.getWebSocketStatusString(socketStatus);
@@ -179,9 +177,9 @@ export class HomePage {
             this._numberOfFreeSlots = freeSlots;
         });
 
-        this._gameService.canGameBeStarted.subscribe(canGameBeStarted => {
-            this._canGameBeStarted = canGameBeStarted;
-        });
+        // this._gameService.canGameBeStarted.subscribe(canGameBeStarted => {
+        //     this._canGameBeStarted = canGameBeStarted;
+        // });
 
         this._gameService.uIMessage.subscribe((message: UIMessage) => {
             if (message != null) {
@@ -282,13 +280,18 @@ export class HomePage {
 
     //#region Boolean functions
     canGameBeJoinedTo(): boolean {
-        return ![
-            GameStatus.ALL_SLOTS_ARE_FULL,
-            GameStatus.DISCONNECTED_FROM_SERVER,
-            GameStatus.SOME_GAME_IS_TAKING_PLACE,
-            GameStatus.AWS_KEYS_NOT_LOADED,
-            GameStatus.INTERNAL_SERVER_ERROR
-        ].includes(this.gameStatus);
+        return this._gameService.canGameBeJoinedTo();
+        // return ![
+        //     GameStatus.ALL_SLOTS_ARE_FULL,
+        //     GameStatus.DISCONNECTED_FROM_SERVER,
+        //     GameStatus.SOME_GAME_IS_TAKING_PLACE,
+        //     GameStatus.AWS_KEYS_NOT_LOADED,
+        //     GameStatus.INTERNAL_SERVER_ERROR
+        // ].includes(this.gameStatus);
+    }
+
+    canGameBeStarted(): boolean {
+        return this._gameService.canGameBeStarted();
     }
     //#endregion
 

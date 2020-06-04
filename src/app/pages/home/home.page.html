@@ -37,7 +37,7 @@
             </div>
 
             <div class="fx-row fx-justify-center" *ngIf="isPlayerAdmin">
-                <ion-button (click)="startGame()" [disabled]="!(canGameBeStarted && isPlayerReady)">
+                <ion-button (click)="startGame()" [disabled]="!(canGameBeStarted() && isPlayerReady)">
                     <ion-icon slot="start" name="play"></ion-icon>
                     Start game
                 </ion-button>
