@@ -98,18 +98,24 @@ export class GamePage implements OnInit {
   // #region service
 
   private subscribeToService() {
-
     this._gameService.gameStatus.subscribe((gameStatus: GameStatus) => {
       this._gameStatus = gameStatus;
       if (this._gameStatus == GameStatus.GAME_OVER) {
         this._loadingComponent.dismissLoading();
         this.navigateToResultsScreen();
+        // this.unsubscribeFromService();
       }
-    })
+      else {
+        console.log(`game: ${gameStatus}`);
+
+        // TODO: Decide what to do here;
+        this._toastComponent.warn(gameStatus);
+      }
+    });
 
     this._gameService.gameWord.subscribe(gameWord => {
       this._gameWord = gameWord;
-    })
+    });
 
     this._gameService.playerAnswerState.subscribe(answerState => {
       console.log(`answer: ${answerState}`);
@@ -118,8 +124,13 @@ export class GamePage implements OnInit {
         this._loadingComponent.dismissLoading();
       }
       this._playerAnswerState = answerState;
-    })
+    });
+  }
 
+  private unsubscribeFromService() {
+    this._gameService.gameStatus.unsubscribe();
+    this._gameService.gameWord.unsubscribe();
+    this._gameService.playerAnswerState.unsubscribe();
   }
   // #endregion
 

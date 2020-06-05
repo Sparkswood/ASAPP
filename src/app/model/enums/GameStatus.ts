@@ -4,6 +4,7 @@ export enum GameStatus {
     NO_CAMERA_PERMISSION = 'No camera permission',
     CONNECTING_TO_SERVER = 'Connecting to server',
     CONNECTED_TO_SERVER = 'Connected to server',
+    ID_NOT_RECEIVED = 'ID not received',
     WAITING_FOR_READY_STATUS = 'Waiting for you to get ready',
     WAITING_FOR_OTHER_PLAYERS = 'Waiting for other players',
     WAITING_FOR_ADMIN_TO_START_THE_GAME = 'Waiting for admin to start game',

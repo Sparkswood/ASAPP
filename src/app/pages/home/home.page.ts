@@ -133,10 +133,10 @@ export class HomePage implements OnInit {
     }
 
     private setInitialValues() {
-        this._isPlayerNameValid = false;
         this._isPlayerAdmin = false;
         this._isPlayerIdValid = false;
         this._isPlayerReady = false;
+        this._gameService.setPlayerName(this._playerName);
     }
 
     private subscribeToService() {

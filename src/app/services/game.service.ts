@@ -171,10 +171,18 @@ export class GameService {
         else
             this.requestPlayerId();
 
-        if (this.isPlayerReady.getValue())
-            this.changeGameStatus(GameStatus.WAITING_FOR_OTHER_PLAYERS);
-        else
-            this.changeGameStatus(GameStatus.WAITING_FOR_READY_STATUS);
+        if (this.isPlayerIdValid) {
+            if (this.isPlayerReady.getValue())
+                this.changeGameStatus(GameStatus.WAITING_FOR_OTHER_PLAYERS);
+            else
+                this.changeGameStatus(GameStatus.WAITING_FOR_READY_STATUS);
+        }
+        else {
+            // TODO: Handle id not set;
+            console.error('id not set')
+
+            this.changeGameStatus(GameStatus.ID_NOT_RECEIVED);
+        }
 
         this.socketConnectionStatus.next(this._socket.OPEN);
     };
@@ -375,6 +383,7 @@ export class GameService {
     canGameBeJoinedTo(): boolean {
         return ![
             GameStatus.ALL_SLOTS_ARE_FULL,
+            GameStatus.ID_NOT_RECEIVED,
             GameStatus.DISCONNECTED_FROM_SERVER,
             GameStatus.SOME_GAME_IS_TAKING_PLACE,
             GameStatus.AWS_KEYS_NOT_LOADED,
@@ -517,18 +526,18 @@ export class GameService {
         console.warn('restarting connection');
         this._failedConnectionAttempts = 0;
 
-        if ([WebSocket.OPEN, WebSocket.CONNECTING].includes(this._socket.readyState) ||
-            this.gameStatus.getValue() == GameStatus.DISCONNECTED_FROM_SERVER
-        ) {
-            this.closeSocketConnection();
-        }
-        else {
+        if (this.gameStatus.getValue() == GameStatus.DISCONNECTED_FROM_SERVER) {
             console.log('reinitlializing service');
             this.deepReconnectToSocket();
         }
+        else if ([WebSocket.OPEN, WebSocket.CONNECTING].includes(this._socket.readyState)
+        ) {
+            this.softReconnectToSocket();
+        }
     }
 
-    private closeSocketConnection() {
+    private softReconnectToSocket() {
+        console.log('soft socket close');
         this._socket.close();
     }
 
