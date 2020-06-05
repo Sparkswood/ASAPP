@@ -31,9 +31,6 @@ export class HomePage implements OnInit {
     private _isPlayerReady: boolean;
     private _isPlayerAdmin: boolean;
 
-    private _defaultReadyState: boolean = false;
-
-
     // WebSocket
     get socketStatusMessage(): string {
         return this._socketStatusMessage;
@@ -64,10 +61,6 @@ export class HomePage implements OnInit {
         return this._numberOfFreeSlots;
     }
 
-    // get canGameBeStarted(): boolean {
-    //     return this._canGameBeStarted;
-    // }
-
     // Player
     get isPlayerReady(): boolean {
         return this._isPlayerReady;
@@ -93,10 +86,6 @@ export class HomePage implements OnInit {
         return this._isPlayerNameValid;
     }
 
-    get defaultReadyState(): boolean {
-        return this._defaultReadyState;
-    }
-
     set playerName(value: string) {
         this._playerName = value;
         this._gameService.setPlayerName(this._playerName);
@@ -115,7 +104,7 @@ export class HomePage implements OnInit {
     }
 
     spinIconControl() {
-        if (this.gameStatusIcon === 'sync') {
+        if (this._gameStatusIcon === 'sync') {
             this._animationComponent.spin(document.querySelector('.stateIcon'));
         } else {
             this._animationComponent.stopAnimation();
@@ -137,9 +126,17 @@ export class HomePage implements OnInit {
         this._gameService.isServiceInitialized.subscribe(isInitialzed => {
             if (isInitialzed) {
                 console.log('resubscribing to service');
+                this.setInitialValues();
                 this.subscribeToService();
             }
         });
+    }
+
+    private setInitialValues() {
+        this._isPlayerNameValid = false;
+        this._isPlayerAdmin = false;
+        this._isPlayerIdValid = false;
+        this._isPlayerReady = false;
     }
 
     private subscribeToService() {
@@ -273,13 +270,6 @@ export class HomePage implements OnInit {
     //#region Boolean functions
     canGameBeJoinedTo(): boolean {
         return this._gameService.canGameBeJoinedTo();
-        // return ![
-        //     GameStatus.ALL_SLOTS_ARE_FULL,
-        //     GameStatus.DISCONNECTED_FROM_SERVER,
-        //     GameStatus.SOME_GAME_IS_TAKING_PLACE,
-        //     GameStatus.AWS_KEYS_NOT_LOADED,
-        //     GameStatus.INTERNAL_SERVER_ERROR
-        // ].includes(this.gameStatus);
     }
 
     canGameBeStarted(): boolean {
@@ -291,16 +281,19 @@ export class HomePage implements OnInit {
     reportReadyState() {
         this._gameService.reportPlayerName();
         this._gameService.reportPlayerReadyState(true);
-        this._defaultReadyState = true;
     }
 
     reportNotReadyState() {
         this._gameService.reportPlayerReadyState(false);
-        this._defaultReadyState = false;
+    }
+
+    reconnect() {
+        this._gameService.reconnectToSocket();
     }
 
     private navigateToGameScreen() {
-        this._router.navigate(['/game']);
+        // TODO: Change to '/game'
+        this._router.navigate(['/results']);
     }
 
     private subscribeToBackButton() {

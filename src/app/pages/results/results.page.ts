@@ -58,12 +58,11 @@ export class ResultsPage {
   }
 
   private navigateToHomeScreen() {
-    this._gameService.reconnectToSocket();
+    this._gameService.deepReconnectToSocket();
     this._router.navigate(['/home']);
   }
 
   exitApp() {
-    this._gameService.reconnectToSocket();
     navigator['app'].exitApp();
   }
 

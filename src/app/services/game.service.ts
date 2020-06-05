@@ -30,7 +30,7 @@ export class GameService {
     socketConnectionStatus: Subject<number>;
     private _failedConnectionAttempts: number;
     private _pingInterval: NodeJS.Timeout;
-    private pingsWithoutPongs: number;
+    private _pingsWithoutPongs: number;
 
     // Game
     uIMessage: BehaviorSubject<UIMessage>;
@@ -57,7 +57,10 @@ export class GameService {
         // this.gameReinitialized = new BehaviorSubject<boolean>(false);
         this.gameStatus = new BehaviorSubject<GameStatus>(GameStatus.CHECKING_CAMERA_PERMISSION);
         this.isServiceInitialized = new BehaviorSubject<boolean>(false);
-        this.observeCameraPermissionChange();
+        // TODO: Revert observing camera permission
+        // this.observeCameraPermissionChange();
+
+        this.initializeService();
     }
 
     //#region Initializers functions
@@ -81,6 +84,8 @@ export class GameService {
     }
 
     initializeService() {
+        console.log('initialize service');
+
         this.setInitialValues();
         this.openWebSocketConnection();
         this.startListeningOnSocketConnectionStatus();
@@ -88,10 +93,12 @@ export class GameService {
     }
 
     private setInitialValues() {
+        console.log('set initial values');
+
         // Socket
         this.socketConnectionStatus = new Subject<number>();
         this._failedConnectionAttempts = 0;
-        this.pingsWithoutPongs = 0;
+        this._pingsWithoutPongs = 0;
 
         // Game
         this.numberOfConnectedPlayers = new BehaviorSubject<number>(0);
@@ -111,8 +118,7 @@ export class GameService {
     }
 
     private openWebSocketConnection = () => {
-        console.warn('opening websocket connection');
-        console.warn(this.WEBSOCKET_URL);
+        console.log('opening websocket connection');
         this._socket = new WebSocket(this.WEBSOCKET_URL);
         this.initializeWebSocketEvents();
         this.startPinging();
@@ -130,10 +136,11 @@ export class GameService {
 
     private sendPing = () => {
         if (this.isPlayerIdValid.getValue() && this._socket.readyState == WebSocket.OPEN) {
-            console.log('Ping');
-            console.log(`Pings w/t pongs: ${this.pingsWithoutPongs}/${GameService.MAX_PINGS_WITHOUT_PONGS}`);
 
-            if (this.pingsWithoutPongs <= GameService.MAX_PINGS_WITHOUT_PONGS) {
+            if (this._pingsWithoutPongs % 2 == 0 && this._pingsWithoutPongs > 0)
+                console.log(`Pings w/t pongs: ${this._pingsWithoutPongs}/${GameService.MAX_PINGS_WITHOUT_PONGS}`);
+
+            if (this._pingsWithoutPongs <= GameService.MAX_PINGS_WITHOUT_PONGS) {
                 const pingRequest = {
                     type: MessageType.PLAYER_PING,
                     payload: {
@@ -141,7 +148,7 @@ export class GameService {
                     }
                 };
                 this._socket.send(JSON.stringify(pingRequest));
-                this.pingsWithoutPongs++;
+                this._pingsWithoutPongs++;
             }
             else {
                 this.changeGameStatus(GameStatus.DISCONNECTED_FROM_SERVER);
@@ -249,8 +256,10 @@ export class GameService {
         }
 
         if (this.isPlayerReady) {
-            if (this.canGameBeStarted()) {
-                this.changeGameStatus(GameStatus.WAITING_FOR_ADMIN_TO_START_THE_GAME);
+            if (this.numberOfReadyPlayers.getValue() >= this.REQUIRED_NUMBER_OF_PLAYERS) {
+                if (this.isPlayerReady.getValue()) {
+                    this.changeGameStatus(GameStatus.WAITING_FOR_ADMIN_TO_START_THE_GAME);
+                }
             }
             this.changeGameStatus(GameStatus.WAITING_FOR_OTHER_PLAYERS);
         }
@@ -279,7 +288,7 @@ export class GameService {
             if (this.numberOfReadyPlayers.getValue() >= this.REQUIRED_NUMBER_OF_PLAYERS) {
                 if (this.isPlayerReady.getValue()) {
                     // this.canGameBeStarted.next(true);
-                    this.changeGameStatus(GameStatus.WAITING_FOR_ADMIN_TO_START_THE_GAME)
+                    this.changeGameStatus(GameStatus.WAITING_FOR_ADMIN_TO_START_THE_GAME);
                 }
             }
             else {
@@ -295,7 +304,7 @@ export class GameService {
     private getNumberOfConnectedPlayers(allPlayers: RawPlayer[]): number {
         let connectedPlayers = 0;
         allPlayers.forEach(rawPlayer => {
-            const player = new Player(rawPlayer)
+            const player = new Player(rawPlayer);
             if (player.isActive) connectedPlayers++;
         });
 
@@ -319,10 +328,7 @@ export class GameService {
     }
 
     private handlePong() {
-        console.log(`Pong`);
-        this.pingsWithoutPongs--;
-        if (this.pingsWithoutPongs < 0)
-            console.log('Something went weirdly wrong');
+        this._pingsWithoutPongs = 0;
     }
 
     private handleGameStartSuccess(message: any) {
@@ -382,13 +388,7 @@ export class GameService {
     }
 
     canGameBeStarted(): boolean {
-        return ![
-            GameStatus.ALL_SLOTS_ARE_FULL,
-            GameStatus.DISCONNECTED_FROM_SERVER,
-            GameStatus.SOME_GAME_IS_TAKING_PLACE,
-            GameStatus.AWS_KEYS_NOT_LOADED,
-            GameStatus.INTERNAL_SERVER_ERROR
-        ].includes(this.gameStatus.getValue());
+        return this.gameStatus.getValue() == GameStatus.WAITING_FOR_ADMIN_TO_START_THE_GAME;
     }
 
     private isSocketOpened(): boolean {
@@ -525,12 +525,20 @@ export class GameService {
         if ([WebSocket.OPEN, WebSocket.CONNECTING].includes(this._socket.readyState) ||
             this.gameStatus.getValue() == GameStatus.DISCONNECTED_FROM_SERVER
         ) {
-            this._socket.close();
+            this.closeSocketConnection();
         }
         else {
             console.log('reinitlializing service');
-            this.initializeService();
+            this.deepReconnectToSocket();
         }
+    }
+
+    private closeSocketConnection() {
+        this._socket.close();
+    }
+
+    deepReconnectToSocket() {
+        this.initializeService();
     }
 
     sendPhoto(photoBase64: string) {
