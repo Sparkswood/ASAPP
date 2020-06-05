@@ -292,8 +292,7 @@ export class HomePage implements OnInit {
     }
 
     private navigateToGameScreen() {
-        // TODO: Change to '/game'
-        this._router.navigate(['/results']);
+        this._router.navigate(['/game']);
     }
 
     private subscribeToBackButton() {

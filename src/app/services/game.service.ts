@@ -54,13 +54,9 @@ export class GameService {
 
     constructor(private _permissionService: PermissionsService) {
         this.uIMessage = new BehaviorSubject<UIMessage>(null);
-        // this.gameReinitialized = new BehaviorSubject<boolean>(false);
         this.gameStatus = new BehaviorSubject<GameStatus>(GameStatus.CHECKING_CAMERA_PERMISSION);
         this.isServiceInitialized = new BehaviorSubject<boolean>(false);
-        // TODO: Revert observing camera permission
-        // this.observeCameraPermissionChange();
-
-        this.initializeService();
+        this.observeCameraPermissionChange();
     }
 
     //#region Initializers functions
@@ -240,7 +236,6 @@ export class GameService {
         if (payload.error == PayloadMessage.NO_MORE_SPACE_FOR_NEW_PLAYERS) {
             this.changeGameStatus(GameStatus.ALL_SLOTS_ARE_FULL);
         } else if (payload.error == PayloadMessage.QUEUE_STAGE_HAS_ENDED) {
-            // TODO: Handle proper action
             this.changeGameStatus(GameStatus.SOME_GAME_IS_TAKING_PLACE);
         }
 
