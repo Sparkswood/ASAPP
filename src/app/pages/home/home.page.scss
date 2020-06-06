@@ -24,8 +24,28 @@
   }
 
   ion-button {
-    width: 100%;
+    width: $button-small-width;
     height: $button-default-height;
+    --border-radius: 100px;
+
+    .ready-state-indicator {
+        font-size: 0.8em;
+        color: rgb(147, 233, 49);
+    }
+  }
+}
+
+.toggle-label {
+  width: 150px;
+  font-size: 1.5em;
+  cursor: pointer;
+  
+  &:first-child {
+      text-align: right;
+  }
+  
+  &:last-child {
+    text-align: left;
   }
 }
 

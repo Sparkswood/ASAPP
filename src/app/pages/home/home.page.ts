@@ -278,6 +278,10 @@ export class HomePage implements OnInit {
     //#endregion
 
     //#region Actuators functions
+    toggleReadyState() {
+        this._gameService.togglePlayerReadyState();
+    }
+
     reportReadyState() {
         this._gameService.reportPlayerName();
         this._gameService.reportPlayerReadyState(true);

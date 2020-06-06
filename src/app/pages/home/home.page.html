@@ -21,13 +21,17 @@
                 </ion-input>
             </div>
             <div class="fx-col fx-align-center fx-justify-center">
-                <ion-button [fill]="isPlayerReady ? 'solid' : 'outline'" style="--border-radius: 100px"
-                    (click)="reportReadyState()" [disabled]="!(isPlayerNameValid && canGameBeJoinedTo())">
+                <ion-button fill="solid" (click)="reportReadyState()"
+                    [disabled]="!(isPlayerNameValid && canGameBeJoinedTo())">
+                    <ion-icon *ngIf="isPlayerReady" class="ready-state-indicator" slot="start" name="radio-button-on">
+                    </ion-icon>
                     Ready
                 </ion-button>
 
-                <ion-button [fill]="isPlayerReady ? 'outline' : 'solid'" style="--border-radius: 100px"
-                    (click)="reportNotReadyState()" [disabled]="!canGameBeJoinedTo()">Not ready
+                <ion-button fill="outline" (click)="reportNotReadyState()" [disabled]="!canGameBeJoinedTo()">
+                    <ion-icon *ngIf="!isPlayerReady" class="ready-state-indicator" slot="start" name="radio-button-on">
+                    </ion-icon>
+                    Not ready
                 </ion-button>
             </div>
 

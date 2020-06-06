@@ -23,6 +23,7 @@ export class GameService {
     // Service
     private _haveCameraPermission: boolean;
     isServiceInitialized: BehaviorSubject<boolean>;
+    private socketOpenTime: number;
     // gameReinitialized: Subject<boolean>;
 
     // WebSocket
@@ -121,8 +122,8 @@ export class GameService {
     }
 
     private initializeWebSocketEvents() {
-        this._socket.onopen = this.handleWebSocketOpen;
-        this._socket.onclose = this.handleWebSocketClose;
+        this._socket.onopen = this.handleSocketOpen;
+        this._socket.onclose = this.handleSocketClose;
         this._socket.onmessage = this.handleSocketMessage;
     }
 
@@ -132,6 +133,7 @@ export class GameService {
 
     private sendPing = () => {
         if (this.isPlayerIdValid.getValue() && this._socket.readyState == WebSocket.OPEN) {
+            console.log('ping');
 
             if (this._pingsWithoutPongs % 2 == 0 && this._pingsWithoutPongs > 0)
                 console.log(`Pings w/t pongs: ${this._pingsWithoutPongs}/${GameService.MAX_PINGS_WITHOUT_PONGS}`);
@@ -161,8 +163,9 @@ export class GameService {
     //#endregion
 
     //#region WebSocket handlers
-    private handleWebSocketOpen = () => {
+    private handleSocketOpen = () => {
         console.warn('socket open');
+        this.socketOpenTime = Date.now();
 
         this._failedConnectionAttempts = 0;
 
@@ -187,9 +190,11 @@ export class GameService {
         this.socketConnectionStatus.next(this._socket.OPEN);
     };
 
-    private handleWebSocketClose = () => {
+    private handleSocketClose = () => {
         clearTimeout(this._pingInterval);
         this._failedConnectionAttempts++;
+        const socketRuntime = (Date.now() - this.socketOpenTime) / 1000;
+        console.log(`Socket closed after ${socketRuntime} seconds of running`);
 
         if (this._failedConnectionAttempts <= GameService.MAX_FAILED_CONNECTION_ATTEMPTS) {
             console.warn('socket close');
@@ -331,6 +336,7 @@ export class GameService {
     }
 
     private handlePong() {
+        console.log('pong');
         this._pingsWithoutPongs = 0;
     }
 
@@ -450,6 +456,16 @@ export class GameService {
         }
     }
 
+    togglePlayerReadyState() {
+        if (this.isPlayerReady.getValue()) {
+            this.reportPlayerReadyState(false);
+        }
+        else {
+            this.reportPlayerName();
+            this.reportPlayerReadyState(false);
+        }
+    }
+
     reportPlayerReadyState(value: boolean) {
         if (!this.isPlayerIdValid.getValue()) {
             this.uIMessage.next({
@@ -542,7 +558,19 @@ export class GameService {
     }
 
     deepReconnectToSocket() {
+        this.killSocket();
         this.initializeService();
+    }
+
+    private killSocket() {
+        this._socket.removeEventListener('open', this.handleSocketOpen);
+        this._socket.removeEventListener('close', this.handleSocketClose);
+        this._socket.removeEventListener('message', this.handleSocketMessage);
+        this._socket.onopen = null;
+        this._socket.onclose = null;
+        this._socket.onmessage = null;
+        this._socket == null;
+
     }
 
     sendPhoto(photoBase64: string) {
