@@ -18,6 +18,8 @@ export class GamePage implements OnInit {
     private _picture: string = '';
     private _base64: string = '';
 
+    // Kind of workaround for not changing GameStatus logic to properly handle socket disconnected when game is in progress
+    private _gameFinished: boolean;
     private _gameStatus: GameStatus;
     private _gameWord: string = '';
     private _playerAnswerState: Date = new Date();
@@ -85,6 +87,8 @@ export class GamePage implements OnInit {
     ) { }
 
     ngOnInit() {
+        console.log('game oninit');
+        this._gameFinished = false;
         this.startCamera();
         this.subscribeToBackButton();
         this.subscribeToService();
@@ -101,9 +105,15 @@ export class GamePage implements OnInit {
         this._gameService.gameStatus.subscribe((gameStatus: GameStatus) => {
             this._gameStatus = gameStatus;
             if (this._gameStatus == GameStatus.GAME_OVER) {
+                this._gameFinished = true;
                 this._loadingComponent.dismissLoading();
                 this.navigateToResultsScreen();
                 // this.unsubscribeFromService();
+            }
+            else if (gameStatus == GameStatus.DISCONNECTED_FROM_SERVER) {
+                if (!this._gameFinished) {
+                    this.navigateToHomeScreen();
+                }
             }
         });
 
@@ -135,13 +145,12 @@ export class GamePage implements OnInit {
         });
     }
 
-    private onBackButtonPressed() {
+    onBackButtonPressed() {
         this._gameService.deepReconnectToSocket();
         this.navigateToHomeScreen();
     }
 
     private navigateToHomeScreen() {
-        this._gameService.reconnectToSocket();
         this._router.navigate(['/home']);
     }
 
@@ -193,14 +202,14 @@ export class GamePage implements OnInit {
         this._loadingComponent.presentLoading(`Waiting for results ...`);
     }
 
-    private discardPicture() {
+    discardPicture() {
         this._doShowFabs = false;
         this._base64 = '';
         this._picture = '';
         this.show();
     }
 
-    private isPictureTaken() {
+    isPictureTaken() {
         return this._picture !== '';
     }
     // #endregion

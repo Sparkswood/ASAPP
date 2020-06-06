@@ -40,7 +40,7 @@
                 <span>{{ getGameStatusString() }}</span>
             </div>
 
-            <div class="fx-row fx-justify-center" *ngIf="isPlayerAdmin">
+            <div class="fx-row fx-justify-center" *ngIf="isPlayerAdmin && canGameBeJoinedTo()">
                 <ion-button (click)="startGame()" [disabled]="!(canGameBeStarted() && isPlayerReady)">
                     <ion-icon slot="start" name="play"></ion-icon>
                     Start game
@@ -53,7 +53,7 @@
                 </ion-button>
             </div>
 
-            <div *ngIf="isPlayerIdValid" class="game-details fx-col fx-align-center">
+            <div *ngIf="canGameBeJoinedTo()" class="game-details fx-col fx-align-center">
                 <span>Connected players: {{ numberOfConnectedPlayers }}</span>
                 <span>Ready players: {{ numberOfReadyPlayers }}</span>
                 <span>Free slots: {{ numberOfFreeSlots != null ? numberOfFreeSlots : ''}}</span>

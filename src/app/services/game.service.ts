@@ -391,15 +391,18 @@ export class GameService {
     //#endregion
 
     //#region Boolean functions
+    canGameControlsBeDisplayed
     canGameBeJoinedTo(): boolean {
-        return ![
-            GameStatus.ALL_SLOTS_ARE_FULL,
-            GameStatus.ID_NOT_RECEIVED,
-            GameStatus.DISCONNECTED_FROM_SERVER,
-            GameStatus.SOME_GAME_IS_TAKING_PLACE,
-            GameStatus.AWS_KEYS_NOT_LOADED,
-            GameStatus.INTERNAL_SERVER_ERROR
-        ].includes(this.gameStatus.getValue());
+        return (this.isPlayerIdValid.getValue()
+            && ![
+                GameStatus.ALL_SLOTS_ARE_FULL,
+                GameStatus.ID_NOT_RECEIVED,
+                GameStatus.DISCONNECTED_FROM_SERVER,
+                GameStatus.SOME_GAME_IS_TAKING_PLACE,
+                GameStatus.AWS_KEYS_NOT_LOADED,
+                GameStatus.INTERNAL_SERVER_ERROR
+            ].includes(this.gameStatus.getValue())
+        );
     }
 
     canGameBeStarted(): boolean {
