@@ -25,11 +25,12 @@
 @import "~@ionic/angular/css/text-transformation.css";
 @import "~@ionic/angular/css/flex-utils.css";
 
-
+/* Custom dimensions */
+@import "./theme/dimensions";
 
 // #region alert-service
 .alert .alert-wrapper {
-    border-radius: 30px;
+    border-radius: $border-radius--default;
     text-align: justify;
     .alert-head{
         text-align: justify;
@@ -44,7 +45,7 @@
 
 // #region loading-service
 .loading .loading-wrapper{
-    border-radius: 30px;
+    border-radius: $border-radius--default;
     font-style: italic;
     ion-spinner {
         color: var(--ion-color-primary);
