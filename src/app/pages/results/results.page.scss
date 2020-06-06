@@ -24,7 +24,7 @@ ion-card-title {
 }
 
 .btn{
-    width: $button-small-width !important;
-    --border-radius: 100px !important;
-    margin: 10px;
+    width: $button-small-width;
+    height: $button-default-height;
+    --border-radius: 100px;
 }

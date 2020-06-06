@@ -36,7 +36,8 @@ export enum MessageType {
     PLAYER_WORD = 'player_word',
     PLAYERS_INFORMATION = 'players_information',
     PLAYER_ANSWER = 'player_answer',
-    PLAYER_ANSWER_ERROR = 'player_answer-wrong'
+    PLAYER_ANSWER_WRONG = 'player_answer-wrong',
+    PLAYER_ANSWER_ERROR = 'player_answer-error'
 }
 
 export enum PayloadMessage {

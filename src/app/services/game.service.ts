@@ -222,6 +222,7 @@ export class GameService {
         else if (messageType === MessageType.GAME_START_ERROR) this.handleGameStartError(message);
         else if (messageType === MessageType.ERROR_INTERNAL) this.handleInternalError(message.payload);
         else if (messageType === MessageType.PLAYER_WORD) this.handlePlayerWord(message.payload);
+        else if (messageType === MessageType.PLAYER_ANSWER_WRONG) this.handlePlayerAnswerWrong(message);
         else if (messageType === MessageType.PLAYER_ANSWER_ERROR) this.handlePlayerAnswerError(message);
         else if (messageType === MessageType.GAME_OVER) this.handleGameOver(message.payload);
         else console.log(`   message type: ${messageType}`);
@@ -368,9 +369,13 @@ export class GameService {
         }
     }
 
-    private handlePlayerAnswerError(message: WebSocketMessage) {
+    private handlePlayerAnswerWrong(message: WebSocketMessage) {
         console.log(message);
         this.playerAnswerState.next(new Date());
+    }
+
+    private handlePlayerAnswerError(message: WebSocketMessage) {
+        console.log(message);
     }
 
     private handleGameOver(payload: Payload) {
