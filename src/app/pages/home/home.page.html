@@ -9,6 +9,12 @@
         <ion-title>
             Photo ASAPP
         </ion-title>
+
+        <ion-buttons slot="end">
+            <ion-label><ion-icon name="sunny" [ngClass]="isDarkMode ? 'modeIconSmall' : 'modeIconBig'"></ion-icon></ion-label>
+            <ion-toggle [checked]="isDarkMode" [color]="isDarkMode ? 'light' : 'dark'" (ionChange)="changeColorMode()"></ion-toggle>
+            <ion-label><ion-icon name="moon" [ngClass]="isDarkMode ? 'modeIconBig' : 'modeIconSmall'"></ion-icon></ion-label>
+        </ion-buttons>
     </ion-toolbar>
 </ion-header>
 
