@@ -1,8 +1,8 @@
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
-        <ion-back-button defaultHref="/home" (click)="navigateToHomeScreen()" icon="chevron-back">
-        </ion-back-button>
+      <ion-back-button defaultHref="/home" (click)="navigateToHomeScreen()" icon="chevron-back">
+      </ion-back-button>
     </ion-buttons>
 
     <ion-title>
@@ -12,35 +12,42 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-<div class=" full-height fx-col fx-justify-center">
-  <ion-label class="result">
-    <h1><b>{{resultTitle}}</b></h1>
-    <h2>{{resultDescription}}</h2>
-  </ion-label>
-  <ion-card>
-    <ion-card-header class="fx-col fx-align-center fx-justify-center">
-      <ion-card-title>
-        The winner is
-      </ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <ion-item lines="none">
-        <ion-icon slot="start" color="warning" name="trophy"></ion-icon>
-        <ion-label class="player">{{winner[0]}}</ion-label>
-      </ion-item>
-    </ion-card-content>
-  </ion-card>
-  
-  <div class="fx-col fx-align-center fx-justify-center">
-    <ion-button class="btn" (click)="navigateToHomeScreen()">
-      <ion-icon slot="start" name="game-controller"></ion-icon>
-      <ion-label>Play again</ion-label>
-    </ion-button>
-  
-    <ion-button fill="outline" class="btn" (click)="exitApp()">
-      <ion-icon slot="start" name="log-out"></ion-icon>
-      <ion-label>Exit game</ion-label>
-    </ion-button>
+  <div class="full-height fx-col fx-justify-start">
+    <div class="results-screen">
+      <div class="header-wrapper">
+        <ion-label class="result">
+          <h1><b>{{resultTitle}}</b></h1>
+          <h2>{{resultDescription}}</h2>
+        </ion-label>
+      </div>
+
+      <div class="scoreboard-wrapper fx-col fx-align-center fx-justify-center">
+        <ion-card>
+          <ion-card-header class="fx-col fx-align-center fx-justify-center">
+            <ion-card-title>
+              The winner is
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-item lines="none">
+              <ion-icon slot="start" color="warning" name="trophy"></ion-icon>
+              <ion-label class="player">{{winner[0]}}</ion-label>
+            </ion-item>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <div class="actions-wrapper fx-col fx-align-center fx-justify-center">
+        <ion-button class="btn" (click)="navigateToHomeScreen()">
+          <ion-icon slot="start" name="game-controller"></ion-icon>
+          <ion-label>Play again</ion-label>
+        </ion-button>
+
+        <ion-button fill="outline" class="btn" (click)="exitApp()">
+          <ion-icon slot="start" name="log-out"></ion-icon>
+          <ion-label>Exit game</ion-label>
+        </ion-button>
+      </div>
+    </div>
   </div>
-</div>
 </ion-content>

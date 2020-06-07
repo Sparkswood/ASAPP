@@ -68,7 +68,7 @@
   }
 }
 
-.action-wrapper {
+.actions-wrapper {
   grid-row: 4 / 5;
   grid-column: 1 / 2;
 
@@ -114,6 +114,8 @@
 @media screen and (orientation: landscape) {
 .home-screen {  
   grid-template-columns: 1fr 1fr;
+  padding-top: 10px;
+  height: 80vh;
 }
 
 .input-wrapper {
@@ -133,7 +135,7 @@
   grid-column: 1 / 3;
 }
 
-.action-wrapper {
+.actions-wrapper {
   grid-row: 4 / 5;
   grid-column: 1 / 3;
 }

@@ -14,7 +14,7 @@
 
 <ion-content [fullscreen]="true">
     <div class="full-height fx-col fx-justify-start fx-align-center">
-        <div class="home-screen fx-col fx-justify-evenly">
+        <div class="home-screen">
             <div class="input-wrapper fx-col fx-align-center fx-justify-center">
                 <div class="input fx-col fx-align-center fx-justify-center">
                     <ion-input (ionInput)="playerName = $event.target.value" type="text"
@@ -23,7 +23,7 @@
                 </div>
             </div>
             <div class="ready-state-wrapper fx-col fx-align-center fx-justify-center">
-                <ion-button fill="solid" (click)="reportReadyState()"
+                <ion-button fill="outline" (click)="reportReadyState()"
                     [disabled]="!(isPlayerNameValid && canGameBeJoinedTo())">
                     <ion-icon *ngIf="isPlayerReady" class="ready-state-indicator" slot="start" name="radio-button-on">
                     </ion-icon>
@@ -43,25 +43,22 @@
                 <span>{{ getGameStatusString() }}</span>
             </div>
 
-            <div class="action-wrapper fx-col fx-justify-center fx-align-center">
-                <!-- <div class="fx-row fx-justify-center" *ngIf="isPlayerAdmin && canGameBeJoinedTo()"> -->
-                <div class="fx-row fx-justify-center">
+            <div class="actions-wrapper fx-col fx-justify-center fx-align-center">
+                <div class="fx-row fx-justify-center" *ngIf="isPlayerAdmin && canGameBeJoinedTo()">
                     <ion-button (click)="startGame()" [disabled]="!(canGameBeStarted() && isPlayerReady)">
                         <ion-icon slot="start" name="play"></ion-icon>
                         Start game
                     </ion-button>
                 </div>
 
-                <!-- <div *ngIf="!canGameBeJoinedTo()" class="fx-row fx-justify-center"> -->
-                <div class="fx-row fx-justify-center">
+                <div *ngIf="!canGameBeJoinedTo()" class="fx-row fx-justify-center">
                     <ion-button (click)="reconnect()" class="btn--reload">
                         <ion-icon slot="start" name="reload"></ion-icon> Reload
                     </ion-button>
                 </div>
             </div>
 
-            <!-- <div *ngIf="canGameBeJoinedTo()" class="game-details fx-col fx-align-center"> -->
-            <div class="game-details fx-col fx-justify-center fx-align-center">
+            <div *ngIf="canGameBeJoinedTo()" class="game-details fx-col fx-align-center">
                 <span>Connected players: {{ numberOfConnectedPlayers }}</span>
                 <span>Ready players: {{ numberOfReadyPlayers }}</span>
                 <span>Free slots: {{ numberOfFreeSlots != null ? numberOfFreeSlots : ''}}</span>
