@@ -40,7 +40,7 @@ export class AppComponent {
       this._network.onDisconnect().subscribe(() => {
         console.log('disconnected');
         this._networkConnection = [false, false];
-        setTimeout( () => {
+        setTimeout(() => {
           if (!this._networkConnection[0]) {
             this._loadingComponent.presentLoading(NetworkConnection.LOST);
             this._networkConnection[1] = true;

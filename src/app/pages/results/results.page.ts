@@ -57,7 +57,7 @@ export class ResultsPage {
     this._platform.backButton.unsubscribe();
   }
 
-  private navigateToHomeScreen() {
+  navigateToHomeScreen() {
     this._gameService.deepReconnectToSocket();
     this._router.navigate(['/home']);
   }

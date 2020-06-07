@@ -23,6 +23,7 @@ export class PermissionsService {
   }
 
   checkCameraPermission() {
+    console.log('checking camera permission');
     this._androidPermissions.checkPermission(this._androidPermissions.PERMISSION.CAMERA).then(result => {
       this.setHaveCameraPermission(result.hasPermission);
       if (!result.hasPermission) {
