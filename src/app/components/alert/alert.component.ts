@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { AlertController } from '@ionic/angular';
-import { permissionRequiredAlert } from 'src/app/model/enums/Alerts';
+import { PermissionRequiredAlert } from 'src/app/model/enums/Alerts';
 
 @Component({
   selector: 'app-alert',
@@ -23,19 +23,19 @@ export class AlertComponent {
 
     this._alert = await this._alertController.create({
       cssClass: 'alert',
-      header: permissionRequiredAlert.HEADER,
-      subHeader: permissionRequiredAlert.SUBHEADER,
-      message: permissionRequiredAlert.MESSAGE,
+      header: PermissionRequiredAlert.HEADER,
+      subHeader: PermissionRequiredAlert.SUBHEADER,
+      message: PermissionRequiredAlert.MESSAGE,
       buttons: [
         {
-          text: permissionRequiredAlert.CANCEL_BUTTON_TEXT,
+          text: PermissionRequiredAlert.CANCEL_BUTTON_TEXT,
           role: 'CANCEL',
           handler: () => {
             resolveFunction(false);
             navigator['app'].exitApp();
           }
         }, {
-          text: permissionRequiredAlert.OK_BUTTON_TEXT,
+          text: PermissionRequiredAlert.OK_BUTTON_TEXT,
           cssClass: 'ok-button',
           role: 'OK',
           handler: () => resolveFunction(true)

@@ -15,6 +15,7 @@ import { AlertComponent } from './components/alert/alert.component';
 import { ToastComponent } from './components/toast/toast.component';
 import { LoadingComponent } from './components/loading/loading.component';
 import { AnimationComponent } from './components/animation/animation.component';
+import { Network } from '@ionic-native/network/ngx';
 
 @NgModule({
   declarations: [AppComponent],
@@ -34,7 +35,8 @@ import { AnimationComponent } from './components/animation/animation.component';
     AlertComponent,
     ToastComponent,
     LoadingComponent,
-    AnimationComponent
+    AnimationComponent,
+    Network
   ],
   bootstrap: [AppComponent]
 })
