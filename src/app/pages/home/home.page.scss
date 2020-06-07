@@ -5,14 +5,15 @@
 
 
 .home-screen {
-  height: 90vh;
   width: 80%;
-
-  display: grid;
+  height: 90vh;
   padding-top: 7vh;
 
+  display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
+  
+  color: var(--ion-color-dark);
 
   ion-button {
     width: $button-small-width;
