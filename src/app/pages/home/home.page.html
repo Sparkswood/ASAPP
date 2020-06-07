@@ -27,7 +27,8 @@
                     Ready
                 </ion-button>
 
-                <ion-button fill="outline" (click)="reportNotReadyState()" [disabled]="!canGameBeJoinedTo()">
+                <ion-button fill="outline" (click)="reportNotReadyState()"
+                    [disabled]="!(isPlayerNameValid && canGameBeJoinedTo())">
                     <ion-icon *ngIf="!isPlayerReady" class="ready-state-indicator" slot="start" name="radio-button-on">
                     </ion-icon>
                     Not ready

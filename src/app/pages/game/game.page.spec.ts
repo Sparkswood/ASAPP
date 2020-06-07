@@ -9,7 +9,7 @@ describe('GamePage', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ GamePage ],
+      declarations: [GamePage],
       imports: [IonicModule.forRoot()]
     }).compileComponents();
 
@@ -18,7 +18,4 @@ describe('GamePage', () => {
     fixture.detectChanges();
   }));
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
 });

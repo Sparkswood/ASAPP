@@ -9,7 +9,7 @@ describe('ToastComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ ToastComponent ],
+      declarations: [ToastComponent],
       imports: [IonicModule.forRoot()]
     }).compileComponents();
 

@@ -9,7 +9,7 @@ describe('AnimationComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ AnimationComponent ],
+      declarations: [AnimationComponent],
       imports: [IonicModule.forRoot()]
     }).compileComponents();
 

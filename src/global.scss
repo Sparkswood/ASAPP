@@ -30,9 +30,10 @@
 @import "./theme/colors";
 
 // Custom background
-ion-content {
-    -–background: $background-light-lvl-0 !important;
-    background-color: $background-light-lvl-0 !important;
+body.md, .md {    
+    ion-content {
+        background-color: $background-light-lvl-0 !important;
+    }
 }
 
 // #region alert-service
