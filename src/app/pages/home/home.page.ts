@@ -243,7 +243,7 @@ export class HomePage implements OnInit {
                 gameStatusIcon = 'close-circle';
                 break;
             }
-            case GameStatus.AWS_KEYS_NOT_LOADED: {
+            case GameStatus.AWS_KEYS_NOT_LOADED, GameStatus.AWS_KEYS_EXPIRED: {
                 gameStatusIcon = 'logo-amazon';
                 break;
             }

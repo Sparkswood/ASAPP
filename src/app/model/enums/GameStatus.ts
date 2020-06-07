@@ -15,5 +15,6 @@ export enum GameStatus {
     RECONNECTING_TO_SERVER = 'Reconnecting to server',
     INTERNAL_SERVER_ERROR = 'Internal server error',
     AWS_KEYS_NOT_LOADED = 'AWS keys not loaded',
+    AWS_KEYS_EXPIRED = 'AWS keys expired',
     GAME_OVER = 'game_over'
 }
