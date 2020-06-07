@@ -391,9 +391,8 @@ export class GameService {
     //#endregion
 
     //#region Boolean functions
-    canGameControlsBeDisplayed
     canGameBeJoinedTo(): boolean {
-        return (this.isPlayerIdValid.getValue()
+        return (this.isPlayerIdValid && this.isPlayerIdValid.getValue()
             && ![
                 GameStatus.ALL_SLOTS_ARE_FULL,
                 GameStatus.ID_NOT_RECEIVED,

@@ -1,24 +1,29 @@
 @import '../../../theme/variables.scss';
+@import '../../../theme/colors.scss';
 @import '../../../theme/dimensions.scss';
 @import '../../../theme/common.scss';
 @import '../../../theme/flex.scss';
 
 ion-card {
     margin: 40px 0;
+    background-color: $background-light-lvl-1;
     border-radius: $border-radius--default;
-    border: 2px solid var(--ion-color-primary);
+    color: $header-color-light;
 }
 
 ion-card-title {
     font-weight: bolder;
+    color: $header-color-light;
 }
 
 .result {
     text-align: justify;
+    color: $header-color-light;
 }
 
 .player {
     font-weight: bold;
+    color: $header-color-light;
 }
 
 .btn{

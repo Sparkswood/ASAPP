@@ -25,13 +25,22 @@
 @import "~@ionic/angular/css/text-transformation.css";
 @import "~@ionic/angular/css/flex-utils.css";
 
-/* Custom dimensions */
+/* Custom styles */
 @import "./theme/dimensions";
+@import "./theme/colors";
+
+// Custom background
+ion-content {
+    -–background: $background-light-lvl-0 !important;
+    background-color: $background-light-lvl-0 !important;
+}
 
 // #region alert-service
 .alert .alert-wrapper {
+    background-color: $background-light-lvl-0 !important;
     border-radius: $border-radius--default;
     text-align: justify;
+    
     .alert-head{
         text-align: justify;
     }
