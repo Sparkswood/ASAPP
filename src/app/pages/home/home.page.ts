@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { GameStatus } from '../../model/enums/GameStatus';
 import { GameService } from '../../services/game.service';
 import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
 import { AnimationComponent } from 'src/app/components/animation/animation.component';
+import { ColorThemeService } from 'src/app/services/color-theme.service';
 
 @Component({
     selector: 'app-home',
@@ -22,6 +23,7 @@ export class HomePage implements OnInit {
     private _numberOfConnectedPlayers: number;
     private _numberOfReadyPlayers: number;
     private _numberOfFreeSlots: number;
+    private _isDarkMode: boolean;
 
     // Player
     private _playerId: string;
@@ -61,6 +63,10 @@ export class HomePage implements OnInit {
         return this._numberOfFreeSlots;
     }
 
+    get isDarkMode(): boolean {
+        return this._isDarkMode;
+    }
+
     // Player
     get isPlayerReady(): boolean {
         return this._isPlayerReady;
@@ -95,12 +101,14 @@ export class HomePage implements OnInit {
         private _gameService: GameService,
         private _router: Router,
         private _platform: Platform,
-        private _animationComponent: AnimationComponent
+        private _animationComponent: AnimationComponent,
+        private _colorThemeService: ColorThemeService
     ) { }
 
     ngOnInit() {
         this.subscribeToServiceControls();
         this.subscribeToBackButton();
+        this._isDarkMode = this._colorThemeService.isDark;
     }
 
     spinIconControl() {
@@ -109,6 +117,11 @@ export class HomePage implements OnInit {
         } else {
             this._animationComponent.stopAnimation();
         }
+    }
+
+    changeColorMode() {
+        this._isDarkMode = !this._isDarkMode;
+        this._colorThemeService.toggleDarkTheme(this._isDarkMode);
     }
 
     //#region Initializers functions

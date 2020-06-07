@@ -27,18 +27,18 @@
 
 /* Custom styles */
 @import "./theme/dimensions";
-@import "./theme/colors";
+@import "./theme/variables";
 
 // Custom background
 body.md, .md {    
     ion-content {
-        background-color: $background-light-lvl-0 !important;
+        background-color: var(--ion-color-medium) !important;
     }
 }
 
 // #region alert-service
 .alert .alert-wrapper {
-    background-color: $background-light-lvl-0 !important;
+    background-color: var(--ion-color-medium) !important;
     border-radius: $border-radius--default;
     text-align: justify;
     

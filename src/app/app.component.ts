@@ -4,6 +4,7 @@ import { Platform } from '@ionic/angular';
 import { SplashScreen } from '@ionic-native/splash-screen/ngx';
 import { StatusBar } from '@ionic-native/status-bar/ngx';
 import { PermissionsService } from './services/permissions.service';
+import { ColorThemeService } from './services/color-theme.service';
 
 @Component({
   selector: 'app-root',
@@ -15,7 +16,8 @@ export class AppComponent {
     private platform: Platform,
     private splashScreen: SplashScreen,
     private statusBar: StatusBar,
-    private _permissionsService: PermissionsService
+    private _permissionsService: PermissionsService,
+    private _colorThemeService: ColorThemeService
   ) {
     this.initializeApp();
   }
@@ -25,6 +27,8 @@ export class AppComponent {
       this.statusBar.styleDefault();
       this.splashScreen.hide();
       this._permissionsService.checkCameraPermission();
+      this._colorThemeService.checkDeviceTheme();
     });
   }
+
 }

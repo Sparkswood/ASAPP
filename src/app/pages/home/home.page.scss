@@ -1,5 +1,4 @@
 @import '../../../theme/variables.scss';
-@import '../../../theme/colors.scss';
 @import '../../../theme/dimensions.scss';
 @import '../../../theme/common.scss';
 @import '../../../theme/flex.scss';
@@ -39,9 +38,7 @@
       height: $text-input-default-height;
       padding: 6px !important;
       padding-left: 0px !important;
-
-      // border: 2px solid var(--ion-color-primary);
-      background-color: $background-light-lvl-1;
+      background-color: var(--ion-color-light);
       border-radius: 100px;
       box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.6);
       
@@ -102,11 +99,10 @@
   border-radius: 100px !important;
 }
 
-// .bottom-wrapper {
-//   position: absolute;
-//   bottom: 0; 
-//   right: 0;
-//   left: 0;
+.modeIconBig {
+  font-size: 1.8em;
+}
 
-//   color: rgba($color: #888, $alpha: 0.5)
-// }
+.modeIconSmall {
+  font-size: 1.3em;
+}
