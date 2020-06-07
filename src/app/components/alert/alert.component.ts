@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { AlertController } from '@ionic/angular';
-import { PermissionRequiredAlert } from 'src/app/model/enums/Alerts';
+import { PermissionRequiredAlert, NetworkConnection } from 'src/app/model/enums/Alerts';
 
 @Component({
   selector: 'app-alert',
@@ -16,6 +16,7 @@ export class AlertComponent {
   ) { }
 
   async presentPermissionRequiredAlert(): Promise<boolean> {
+    this.dismissAlert(); // prevent double alerts
     let resolveFunction: (confirm: boolean) => void;
     let promise = new Promise<boolean>(resolve => {
       resolveFunction = resolve;
@@ -47,6 +48,31 @@ export class AlertComponent {
     return promise;
   }
 
+  async presentNetworkConnection() {
+    this.dismissAlert(); // prevent double alerts
+
+    this._alert = await this._alertController.create({
+      cssClass: 'alert',
+      header: NetworkConnection.HEADER,
+      message: NetworkConnection.MESSAGE,
+      buttons: [
+        {
+          text: NetworkConnection.OK_BUTTON_TEXT,
+          cssClass: 'ok-button',
+          role: 'OK',
+          handler: () => this._alert.dismiss()
+        }
+      ]
+    });
+
+    await this._alert.present();
+  }
+
+  dismissAlert() {
+    try {
+      this._alert.dismiss()
+    } catch {}
+  }
 
 
 }

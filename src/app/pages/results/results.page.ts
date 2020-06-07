@@ -33,14 +33,12 @@ export class ResultsPage {
     private _gameService: GameService
   ) {
     this.subscribeToBackButton();
-    console.log(this._gameService.winner.getValue());
     this._winner = this._gameService.winner.getValue();
     this._resultTitle = this._winner[1] ? Winner.TITLE : Loser.TITLE;
     this._resultDescription = this._winner[1] ? Winner.DESC : Loser.DESC;
   }
 
   ionViewWillLeave() {
-    // this.unsubscribeToBackButton();
     this._winner = ['', false];
     this._resultTitle = '';
     this._resultDescription = '';
@@ -53,11 +51,7 @@ export class ResultsPage {
     });
   }
 
-  private unsubscribeToBackButton() {
-    this._platform.backButton.unsubscribe();
-  }
-
-  private navigateToHomeScreen() {
+  navigateToHomeScreen() {
     this._gameService.deepReconnectToSocket();
     this._router.navigate(['/home']);
   }

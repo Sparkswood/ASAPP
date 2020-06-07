@@ -7,5 +7,7 @@ export enum PermissionRequiredAlert {
 }
 
 export enum NetworkConnection {
-    LOST = 'Check your network connection'
+    HEADER = 'Connection is lost.',
+    MESSAGE = 'Make sure you have internet access',
+    OK_BUTTON_TEXT = 'OK'
 }

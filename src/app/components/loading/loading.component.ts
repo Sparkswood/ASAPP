@@ -16,6 +16,7 @@ export class LoadingComponent {
   ) { }
 
   async presentLoading(message) {
+    this.dismissLoading();  // prevent double loadings
     this._loading = await this._loadingController.create({
       cssClass: 'loading',
       spinner: 'circular',
@@ -24,8 +25,10 @@ export class LoadingComponent {
     await this._loading.present();
   }
 
-  async dismissLoading() {
-    this._loading.dismiss();
+  dismissLoading() {
+    try {
+      this._loading.dismiss();
+    } catch {}
   }
 
 }
