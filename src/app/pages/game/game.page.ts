@@ -108,7 +108,7 @@ export class GamePage implements OnInit {
                 this.navigateToResultsScreen();
                 // this.unsubscribeFromService();
             }
-            else if (gameStatus == GameStatus.DISCONNECTED_FROM_SERVER) {
+            else if (gameStatus == GameStatus.DISCONNECTED_FROM_SERVER || gameStatus == GameStatus.AWS_KEYS_EXPIRED) {
                 if (!this._gameFinished) {
                     this.navigateToHomeScreen();
                 }
