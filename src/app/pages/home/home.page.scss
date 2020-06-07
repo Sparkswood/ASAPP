@@ -6,25 +6,14 @@
 
 
 .home-screen {
-  height: 500px;
+  height: 90vh;
   width: 80%;
 
-  ion-input {
-    width: 100%;
-    box-sizing: border-box;
-    height: $text-input-default-height;
-    padding: 6px !important;
-    padding-left: 0px !important;
+  display: grid;
+  padding-top: 7vh;
 
-    // border: 2px solid var(--ion-color-primary);
-    background-color: $background-light-lvl-1;
-    border-radius: 100px;
-    box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.6);
-    
-    color: var(--ion-color-primary);
-    font-weight: bold;
-    text-align: center;
-  }
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
 
   ion-button {
     width: $button-small-width;
@@ -35,6 +24,62 @@
         font-size: 0.8em;
         color: rgb(147, 233, 49);
     }
+  }
+}
+
+.input-wrapper {
+  grid-row: 1 / 2;
+  grid-column: 1 / 2;
+  
+  .input {
+    width: 100%;
+    
+    ion-input {
+      width: 100%;
+      height: $text-input-default-height;
+      padding: 6px !important;
+      padding-left: 0px !important;
+
+      // border: 2px solid var(--ion-color-primary);
+      background-color: $background-light-lvl-1;
+      border-radius: 100px;
+      box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.6);
+      
+      color: var(--ion-color-primary);
+      font-weight: bold;
+      text-align: center;
+    }
+  }
+}
+
+.ready-state-wrapper {
+  grid-row: 2 / 3;
+  grid-column: 1 / 2;
+}
+
+.game-status {
+  grid-row: 3 / 4;
+  grid-column: 1 / 2;
+
+  ion-icon {
+    height: 48px;
+    
+    font-size: 2em;
+  }
+}
+
+.actions-wrapper {
+  grid-row: 4 / 5;
+  grid-column: 1 / 2;
+
+}
+
+.game-details {
+  grid-row: 5 / 6;
+  grid-column: 1 / 2;
+
+  span {
+    margin: 4px 0;
   }
 }
 
@@ -52,30 +97,16 @@
   }
 }
 
-.game-status {
-  ion-icon {
-    height: 48px;
-    
-    font-size: 2em;
-  }
-}
-
 .btn--reload {
   width: $button-small-width !important;
   border-radius: 100px !important;
 }
 
-.game-details {
-  span {
-    margin: 4px 0;
-  }
-}
+// .bottom-wrapper {
+//   position: absolute;
+//   bottom: 0; 
+//   right: 0;
+//   left: 0;
 
-.bottom-wrapper {
-  position: absolute;
-  bottom: 0; 
-  right: 0;
-  left: 0;
-
-  color: rgba($color: #888, $alpha: 0.5)
-}
+//   color: rgba($color: #888, $alpha: 0.5)
+// }

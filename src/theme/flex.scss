@@ -12,6 +12,10 @@
     flex-direction: column;
 }
 
+.fx-align-start {
+    align-items: flex-start;
+}
+
 .fx-align-center {
     align-items: center;
 }
@@ -22,6 +26,10 @@
 
 .fx-align-spread {
     align-items: spread;
+}
+
+.fx-justify-start {
+    justify-content: flex-start;
 }
 
 .fx-justify-center {
