@@ -33,10 +33,9 @@ export class GamePage implements OnInit {
         height: window.innerHeight - 56,
         camera: 'rear',
         tapPhoto: true,
-        previewDrag: true,
+        previewDrag: false,
         toBack: true,
-        tapToFocus: true,
-        alpha: 1
+        tapToFocus: true
     }
 
     private _pictureOpts: CameraPreviewPictureOptions = {
@@ -100,7 +99,6 @@ export class GamePage implements OnInit {
     }
 
     // #region service
-
     private subscribeToService() {
         this._gameService.gameStatus.subscribe((gameStatus: GameStatus) => {
             this._gameStatus = gameStatus;

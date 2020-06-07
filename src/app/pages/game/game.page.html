@@ -19,18 +19,18 @@
 
     <div *ngIf="isPictureTaken()" class="full-screen">
       <img [src]="picture" class="full-screen">
+
       <ion-fab *ngIf="doShowFabs" vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button (click)="savePicture()" color="primaryT">
+        <ion-fab-button (click)="savePicture()" color="primary">
           <ion-icon name="checkmark"></ion-icon>
         </ion-fab-button>
       </ion-fab>
+
       <ion-fab *ngIf="doShowFabs" vertical="bottom" horizontal="start" slot="fixed">
-        <ion-fab-button id="discard" (click)="discardPicture()" color="primaryT">
+        <ion-fab-button id="discard" (click)="discardPicture()" color="primary">
           <ion-icon name="close"></ion-icon>
         </ion-fab-button>
       </ion-fab>
     </div>
-
   </div>
-
 </ion-content>
